@@ -1,0 +1,216 @@
+<div class="layout-wrapper">
+  <!-- TOP NAVIGATION BAR -->
+  <header class="topbar glass-panel">
+    <div class="topbar-left">
+      <p-button 
+        icon="pi pi-bars" 
+        [text]="true" 
+        [rounded]="true" 
+        (onClick)="sidebarVisible = true" 
+        styleClass="burger-btn">
+      </p-button>
+      
+      <div class="brand-logo ml-3">
+        <i class="pi pi-shield brand-icon"></i>
+        <span class="brand-text hidden-mobile">Atten<span class="brand-hl">Guard</span></span>
+      </div>
+    </div>
+
+    <div class="topbar-right">
+      <div class="notification-wrap">
+        <button
+          type="button"
+          class="notification-btn"
+          (click)="toggleNotifications($event)"
+          title="Notifications"
+          aria-label="Notifications"
+        >
+          <i class="pi pi-bell"></i>
+          <span class="notification-badge" *ngIf="unreadCount > 0">{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
+        </button>
+
+        <div class="notification-panel" *ngIf="notificationsOpen" (click)="$event.stopPropagation()">
+          <div class="notification-panel-header">
+            <h3>Notifications</h3>
+            <span class="notification-sub">From teachers &amp; admins</span>
+          </div>
+
+          <div class="notification-loading" *ngIf="loadingNotifications">
+            <i class="pi pi-spin pi-spinner"></i> Loading...
+          </div>
+
+          <div class="notification-list" *ngIf="!loadingNotifications && notifications.length > 0">
+            <article class="notification-item" *ngFor="let n of notifications">
+              <div class="notification-item-top">
+                <strong>{{ n.title }}</strong>
+                <span class="role-pill" [ngClass]="n.authorRole.toLowerCase()">{{ n.authorRole }}</span>
+              </div>
+              <p>{{ n.message }}</p>
+              <small>{{ n.authorName }} · {{ n.createdAt | date:'short' }}</small>
+            </article>
+          </div>
+
+          <div class="notification-empty" *ngIf="!loadingNotifications && notifications.length === 0">
+            <i class="pi pi-inbox"></i>
+            <p>No notifications yet.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="user-profile" (click)="openProfileModal()" style="cursor: pointer;" title="Edit Profile">
+        <span class="user-greeting hidden-mobile">Hi, {{ user?.firstName || 'Student' }}</span>
+        
+        <!-- Show photo if available, else show default avatar -->
+        <div class="topbar-avatar">
+          <img *ngIf="user?.profilePhoto" [src]="user?.profilePhoto" alt="Profile" />
+          <p-avatar *ngIf="!user?.profilePhoto" icon="pi pi-user" shape="circle" styleClass="profile-avatar"></p-avatar>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- SIDEBAR (BURGER MENU) -->
+  <p-sidebar [(visible)]="sidebarVisible" [showCloseIcon]="true" styleClass="custom-sidebar">
+    <ng-template pTemplate="header">
+      <div class="sidebar-header">
+        <i class="pi pi-shield brand-icon"></i>
+        <span class="brand-text">Atten<span class="brand-hl">Guard</span></span>
+      </div>
+    </ng-template>
+    
+    <div class="sidebar-content">
+      <div class="user-info-card">
+        <div class="topbar-avatar" style="width: 60px; height: 60px; border-radius: 50%; border: 2px solid #3b82f6;">
+          <img *ngIf="user?.profilePhoto" [src]="user.profilePhoto" alt="Profile" />
+          <p-avatar *ngIf="!user?.profilePhoto" icon="pi pi-user" shape="circle" size="xlarge" styleClass="sidebar-avatar"></p-avatar>
+        </div>
+        <div class="info">
+          <h4>{{ user?.firstName }} {{ user?.lastName }}</h4>
+          <p>{{ user?.studentId || 'Student' }}</p>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <a routerLink="/student/dashboard" routerLinkActive="active" (click)="sidebarVisible = false" class="nav-item">
+          <i class="pi pi-home"></i>
+          <span>Dashboard</span>
+        </a>
+        <a routerLink="/student/schedule" routerLinkActive="active" (click)="sidebarVisible = false" class="nav-item">
+          <i class="pi pi-calendar"></i>
+          <span>My Schedule</span>
+        </a>
+        <a routerLink="/student/modules" routerLinkActive="active" (click)="sidebarVisible = false" class="nav-item">
+          <i class="pi pi-book"></i>
+          <span>My Modules</span>
+        </a>
+        <a routerLink="/student/announcements" routerLinkActive="active" (click)="sidebarVisible = false" class="nav-item">
+          <i class="pi pi-megaphone"></i>
+          <span>Announcements</span>
+        </a>
+        <a routerLink="/student/history" routerLinkActive="active" (click)="sidebarVisible = false" class="nav-item">
+          <i class="pi pi-history"></i>
+          <span>Attendance History</span>
+        </a>
+        <a routerLink="/student/notes" routerLinkActive="active" (click)="sidebarVisible = false" class="nav-item">
+          <i class="pi pi-pencil"></i>
+          <span>My Notes</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="logout-btn" (click)="logout()">
+          <i class="pi pi-sign-out"></i>
+          <span>Logout</span>
+        </button>
+      </div>
+    </div>
+  </p-sidebar>
+
+  <!-- MAIN CONTENT AREA -->
+  <main class="main-content animate-fade-in">
+    <router-outlet></router-outlet>
+  </main>
+
+  <!-- EDIT PROFILE MODAL (Split Screen) -->
+  <p-dialog 
+    header="Edit Profile" 
+    [(visible)]="profileModalVisible" 
+    [modal]="true" 
+    [style]="{ width: '700px', 'max-width': '95vw', padding: '0' }" 
+    [draggable]="false" 
+    [resizable]="false"
+    [showHeader]="false"
+    styleClass="split-modal-dialog">
+    
+    <div class="modal-split-container">
+      <!-- Left Panel: Branding / Photo Upload -->
+      <div class="modal-left-panel">
+        <div class="modal-brand">
+          <i class="pi pi-user-edit"></i>
+          <h3>Your Profile</h3>
+        </div>
+        
+        <div class="photo-upload-container">
+          <div class="photo-preview" (click)="fileInput.click()">
+            <img *ngIf="photoPreview" [src]="photoPreview" alt="Preview" />
+            <div *ngIf="!photoPreview" class="photo-placeholder">
+              <i class="pi pi-camera"></i>
+              <span>Upload Photo</span>
+            </div>
+            
+            <div class="photo-overlay">
+              <i class="pi pi-pencil"></i>
+            </div>
+          </div>
+          <input type="file" #fileInput accept="image/*" style="display: none" (change)="onFileSelected($event)">
+          <p class="photo-hint">Click the image to change</p>
+        </div>
+      </div>
+
+      <!-- Right Panel: Form Fields -->
+      <div class="modal-right-panel">
+        <div class="panel-header">
+          <h2>Update Details</h2>
+          <button class="close-btn" (click)="profileModalVisible = false"><i class="pi pi-times"></i></button>
+        </div>
+
+        <div class="form-fields">
+          <div class="form-group">
+            <label>First Name</label>
+            <div class="input-wrapper">
+              <i class="pi pi-user"></i>
+              <input type="text" pInputText [(ngModel)]="editFirstName" placeholder="Enter first name" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Last Name</label>
+            <div class="input-wrapper">
+              <i class="pi pi-user"></i>
+              <input type="text" pInputText [(ngModel)]="editLastName" placeholder="Enter last name" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Student ID <span style="color:#94a3b8;font-size:0.75rem;font-weight:400;">(Auto-generated · Read only)</span></label>
+            <div class="input-wrapper">
+              <i class="pi pi-id-card"></i>
+              <input type="text" pInputText [value]="editStudentId" readonly style="opacity:0.6;cursor:not-allowed;background:#f8fafc;" />
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-footer">
+          <p-button label="Cancel" [text]="true" severity="secondary" (onClick)="profileModalVisible = false"></p-button>
+          <p-button 
+            label="Save Changes" 
+            icon="pi pi-check" 
+            [loading]="isSaving || isUploadingPhoto" 
+            (onClick)="saveProfile()"
+            styleClass="save-btn">
+          </p-button>
+        </div>
+      </div>
+    </div>
+  </p-dialog>
+</div>

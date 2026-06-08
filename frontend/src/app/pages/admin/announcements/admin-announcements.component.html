@@ -1,0 +1,95 @@
+<div class="ann-page">
+  <div class="page-header">
+    <div>
+      <h1>Announcements</h1>
+      <p>Post global or targeted announcements to teachers and/or students.</p>
+    </div>
+    <div class="header-actions">
+      <div class="search-box">
+        <i class="pi pi-search"></i>
+        <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="applyFilter()" placeholder="Search announcements..." />
+      </div>
+      <button class="create-btn" (click)="openCreate()">
+        <i class="pi pi-plus"></i> New Announcement
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loader-container" *ngIf="isLoading">
+    <i class="pi pi-spin pi-spinner"></i><p>Loading...</p>
+  </div>
+
+  <!-- Cards -->
+  <div class="ann-list" *ngIf="!isLoading">
+    <div class="ann-card" *ngFor="let a of filteredAnnouncements">
+      <div class="ann-card-header">
+        <div class="ann-meta">
+          <span class="target-badge" [ngClass]="a.targetAudience.toLowerCase()">
+            <i class="pi" [ngClass]="a.targetAudience==='ALL'?'pi-globe':a.targetAudience==='TEACHERS'?'pi-user-edit':a.targetAudience==='STUDENTS'?'pi-users':'pi-book'"></i>
+            {{ targetLabel(a.targetAudience) }}
+            <span *ngIf="a.courseCode"> — {{ a.courseCode }}</span>
+          </span>
+          <span class="ann-date">{{ a.createdAt | date:'MMM d, y · h:mm a' }}</span>
+        </div>
+        <button class="del-btn" (click)="delete(a)" title="Delete"><i class="pi pi-trash"></i></button>
+      </div>
+      <h3 class="ann-title">{{ a.title }}</h3>
+      <p class="ann-message">{{ a.message }}</p>
+      <div class="ann-footer">
+        <div class="author-chip">
+          <i class="pi pi-user"></i>
+          <span>{{ a.authorName }} <span class="role-tag">{{ a.authorRole }}</span></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="filteredAnnouncements.length === 0">
+      <i class="pi pi-megaphone"></i>
+      <h3>No Announcements Yet</h3>
+      <p>Click "New Announcement" to post something to your community.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Create Modal -->
+<p-dialog header="Post New Announcement" [(visible)]="showCreate" [modal]="true"
+  [style]="{ width: '560px', 'max-width': '95vw' }" [draggable]="false" styleClass="ann-dialog">
+  <div class="modal-body">
+    <div *ngIf="postError" class="error-banner"><i class="pi pi-exclamation-triangle"></i> {{ postError }}</div>
+
+    <div class="form-group">
+      <label>Title</label>
+      <span class="input-wrapper">
+        <i class="pi pi-bookmark"></i>
+        <input pInputText [(ngModel)]="newAnn.title" placeholder="Announcement title" class="modal-input" />
+      </span>
+    </div>
+
+    <div class="form-group">
+      <label>Message</label>
+      <textarea [(ngModel)]="newAnn.message" rows="4" placeholder="Write your announcement here..." class="modal-textarea"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Target Audience</label>
+      <div class="target-options">
+        <button *ngFor="let opt of targetOptions"
+          class="target-opt-btn"
+          [class.active]="newAnn.targetAudience === opt.value"
+          (click)="newAnn.targetAudience = opt.value">
+          {{ opt.label }}
+        </button>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="cancel-btn" (click)="showCreate = false">Cancel</button>
+      <button class="post-btn" [disabled]="isPosting" (click)="post()">
+        <i class="pi pi-send" *ngIf="!isPosting"></i>
+        <i class="pi pi-spin pi-spinner" *ngIf="isPosting"></i>
+        Post Announcement
+      </button>
+    </div>
+  </div>
+</p-dialog>

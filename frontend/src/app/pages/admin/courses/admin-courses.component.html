@@ -1,0 +1,172 @@
+<div class="courses-page">
+  <div class="page-header">
+    <div class="header-left">
+      <h1>Manage Courses</h1>
+      <p>View curriculum modules, create new courses, and assign teaching staff.</p>
+    </div>
+    <div class="header-right">
+      <div class="panel-actions">
+        <div class="search-box">
+          <i class="pi pi-search"></i>
+          <input 
+            type="text" 
+            [(ngModel)]="searchQuery" 
+            (ngModelChange)="applyFilter()" 
+            placeholder="Search courses..." />
+        </div>
+        <button class="create-btn" (click)="openCreateCourse()">
+          <i class="pi pi-book"></i> Create Course
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-container" *ngIf="filteredCourses.length > 0">
+      <table class="courses-table">
+        <thead>
+          <tr>
+            <th>Course Code</th>
+            <th>Course Title</th>
+            <th>Credits</th>
+            <th>Assigned Instructor</th>
+            <th>Enrolled Students</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of filteredCourses">
+            <td>
+              <span class="code-badge">{{ c.code }}</span>
+            </td>
+            <td>
+              <strong>{{ c.name }}</strong>
+            </td>
+            <td>{{ c.credits }} Credits</td>
+            <td>
+              <div class="instructor-cell" style="display: flex; flex-direction: column; align-items: flex-start; gap: 0.25rem;">
+                <div style="display: flex; align-items: center; gap: 0.35rem;">
+                  <i class="pi pi-user-edit icon"></i>
+                  <span>{{ c.assignedTeacher }}</span>
+                </div>
+                <span *ngIf="c.teacherAssignmentStatus" 
+                      class="status-badge" 
+                      [ngClass]="'status-' + c.teacherAssignmentStatus">
+                  {{ c.teacherAssignmentStatus }}
+                </span>
+              </div>
+            </td>
+            <td>
+              <div class="students-cell">
+                <i class="pi pi-users icon"></i>
+                <strong>{{ c.studentCount }} Enrolled</strong>
+              </div>
+            </td>
+            <td>
+              <div class="actions-cell">
+                <button class="action-btn delete-btn" (click)="deleteCourse(c)" title="Delete course">
+                  <i class="pi pi-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Empty state -->
+    <div class="empty-state" *ngIf="filteredCourses.length === 0">
+      <i class="pi pi-bookmark"></i>
+      <h3>No Courses Found</h3>
+      <p>There are no registered courses matching your filters.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── CREATE COURSE MODAL ── -->
+<p-dialog
+  header="Create New Course"
+  [(visible)]="showCreateCourse"
+  [modal]="true"
+  [style]="{ width: '520px', 'max-width': '95vw' }"
+  [draggable]="false"
+  styleClass="create-course-dialog">
+
+  <div class="modal-split">
+    <!-- Left branding panel -->
+    <div class="modal-left">
+      <i class="pi pi-book modal-icon"></i>
+      <h3>New Course</h3>
+      <p>Configure a new course module, select credit weight, and assign a teacher for provisioning attendance.</p>
+      <div class="modal-badge">
+        <i class="pi pi-lock"></i> Course Config
+      </div>
+    </div>
+
+    <!-- Right form panel -->
+    <div class="modal-right">
+      <div *ngIf="createError" class="error-banner">
+        <i class="pi pi-exclamation-triangle"></i> {{ createError }}
+      </div>
+
+      <div class="form-group">
+        <label>Course Code</label>
+        <span class="input-wrapper">
+          <i class="pi pi-tag"></i>
+          <input pInputText [(ngModel)]="newCourse.code" placeholder="e.g. CS-101" class="modal-input" />
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label>Course Title</label>
+        <span class="input-wrapper">
+          <i class="pi pi-bookmark"></i>
+          <input pInputText [(ngModel)]="newCourse.name" placeholder="e.g. Introduction to Programming" class="modal-input" />
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label>Credit Hours</label>
+        <span class="input-wrapper">
+          <i class="pi pi-clock"></i>
+          <input pInputText type="number" [(ngModel)]="newCourse.credits" class="modal-input" min="1" max="6" />
+        </span>
+      </div>
+
+      <div class="form-row-times">
+        <div class="form-group">
+          <label>Class Start</label>
+          <span class="input-wrapper">
+            <i class="pi pi-clock"></i>
+            <input type="time" [(ngModel)]="newCourse.classStartTime" class="modal-input" />
+          </span>
+        </div>
+        <div class="form-group">
+          <label>Class End</label>
+          <span class="input-wrapper">
+            <i class="pi pi-clock"></i>
+            <input type="time" [(ngModel)]="newCourse.classEndTime" class="modal-input" />
+          </span>
+        </div>
+      </div>
+      <p class="schedule-hint">Optional. Shown to students on their dashboard.</p>
+
+      <div class="form-group">
+        <label>Assign Instructor</label>
+        <span class="input-wrapper select-wrapper">
+          <i class="pi pi-user-edit"></i>
+          <select [(ngModel)]="newCourse.teacherId" class="modal-select">
+            <option value="">-- Unassigned / Select Teacher --</option>
+            <option *ngFor="let t of teachers" [value]="t.id">
+              {{ t.firstName }} {{ t.lastName }} ({{ t.email }})
+            </option>
+          </select>
+        </span>
+      </div>
+
+      <button class="create-confirm-btn" (click)="createCourse()">
+        <i class="pi pi-plus"></i> Create Course
+      </button>
+    </div>
+  </div>
+</p-dialog>

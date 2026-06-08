@@ -1,0 +1,125 @@
+<div class="split-wrapper animate-fade-in">
+  <!-- LEFT: Navy Branded Panel -->
+  <div class="left-panel">
+    <div class="left-content">
+      <div class="deco-circle deco-1"></div>
+      <div class="deco-circle deco-2"></div>
+
+      
+      <div class="brand-block">
+        <div class="brand-logo">
+          <i class="pi pi-shield brand-icon"></i>
+          <span class="brand-text">Atten<span class="brand-hl">Guard</span></span>
+        </div>
+        <h2 class="left-title">Welcome Back!</h2>
+        <p class="left-desc">
+          Sign in to access your dashboard, view attendance records, and manage your courses.
+        </p>
+      </div>
+
+      <!-- Mini illustration -->
+      <div class="illust-row">
+        <div class="illust-card">
+          <i class="pi pi-lock"></i>
+          <div class="illust-bar bar-long"></div>
+          <div class="illust-bar bar-short"></div>
+        </div>
+        <div class="illust-person">
+          <div class="p-head"></div>
+          <div class="p-body"></div>
+        </div>
+        <div class="illust-card">
+          <i class="pi pi-check-circle" style="color: #34d399;"></i>
+          <div class="illust-bar bar-long"></div>
+          <div class="illust-bar bar-short"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Login Form Panel -->
+  <div class="right-panel">
+    <div class="right-content">
+      <!-- Avatar -->
+      <div class="avatar-ring">
+        <i class="pi pi-sign-in avatar-icon"></i>
+      </div>
+
+      <h2 class="form-title">SIGN IN</h2>
+      <p class="form-subtitle">Enter your credentials to continue</p>
+
+      <form class="login-form" (ngSubmit)="login()">
+        <!-- Error Message -->
+        <div *ngIf="errorMessage" class="error-banner">
+          <i class="pi pi-exclamation-triangle"></i> {{ errorMessage }}
+        </div>
+        <!-- Email -->
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <span class="p-input-icon-left input-wrapper">
+            <i class="pi pi-envelope"></i>
+            <input
+              pInputText
+              type="email"
+              placeholder="name@school.edu"
+              [(ngModel)]="email"
+              name="email"
+              class="input-field"
+            />
+          </span>
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <span class="p-input-icon-left input-wrapper">
+            <i class="pi pi-lock"></i>
+            <input
+              pInputText
+              type="password"
+              placeholder="••••••••"
+              [(ngModel)]="password"
+              name="password"
+              class="input-field"
+            />
+          </span>
+        </div>
+
+        <!-- Remember me + Forgot password -->
+        <div class="form-options">
+          <label class="remember-label">
+            <p-checkbox
+              [(ngModel)]="rememberMe"
+              [binary]="true"
+              name="rememberMe"
+            />
+            <span>Remember me</span>
+          </label>
+          <a routerLink="/forgot-password" class="forgot-link">Forgot Password?</a>
+        </div>
+
+        <!-- Login Button -->
+        <div class="form-actions">
+          <p-button
+            type="submit"
+            label="LOGIN"
+            icon="pi pi-sign-in"
+            [raised]="true"
+            [rounded]="true"
+            [loading]="isLoading"
+            styleClass="login-btn"
+          />
+        </div>
+      </form>
+
+      <!-- Footer -->
+      <div class="form-footer">
+        <p>Don't have an account? <a routerLink="/register" class="accent-link">Register as Student</a></p>
+        <p class="admin-note">
+          <i class="pi pi-info-circle"></i>
+          Teachers & Admins are provisioned by an Administrator.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

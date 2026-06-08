@@ -1,0 +1,169 @@
+<div class="split-wrapper animate-fade-in">
+  <!-- LEFT: Navy Branded Panel -->
+  <div class="left-panel">
+    <div class="left-content">
+      <div class="deco-circle deco-1"></div>
+      <div class="deco-circle deco-2"></div>
+
+      <a routerLink="/" class="back-link">
+        <i class="pi pi-arrow-left"></i> Back to Home
+      </a>
+
+      <div class="brand-block">
+        <div class="brand-logo">
+          <i class="pi pi-shield brand-icon"></i>
+          <span class="brand-text">Atten<span class="brand-hl">Guard</span></span>
+        </div>
+        <h2 class="left-title">Join Your Campus</h2>
+        <p class="left-desc">
+          Create your student account to start scanning QR codes and tracking your attendance in real-time.
+        </p>
+      </div>
+
+      <!-- Steps -->
+      <div class="steps-list">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-info">
+            <h4>Create Account</h4>
+            <p>Fill in your student details</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-info">
+            <h4>Get Enrolled</h4>
+            <p>Your teacher adds you to a class</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-info">
+            <h4>Scan & Check In</h4>
+            <p>Scan the QR code in class to mark attendance</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Register Form -->
+  <div class="right-panel">
+    <div class="right-content">
+      <!-- Avatar -->
+      <div class="avatar-ring">
+        <i class="pi pi-user-plus avatar-icon"></i>
+      </div>
+
+      <h2 class="form-title">REGISTER</h2>
+      <p class="form-subtitle">Student accounts only</p>
+
+      <form class="register-form" (ngSubmit)="register()">
+        <!-- Error / Success Messages -->
+        <div *ngIf="errorMessage" class="error-banner">
+          <i class="pi pi-exclamation-triangle"></i> {{ errorMessage }}
+        </div>
+        <div *ngIf="isSuccess" class="success-banner">
+          <i class="pi pi-check-circle"></i> Account created! Your Student ID has been auto-generated. Redirecting to login...
+        </div>
+        <!-- Name Row -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">First Name</label>
+            <span class="p-input-icon-left input-wrapper">
+              <i class="pi pi-user"></i>
+              <input
+                pInputText
+                type="text"
+                placeholder="Juan"
+                [(ngModel)]="firstName"
+                name="firstName"
+                class="input-field"
+              />
+            </span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Last Name</label>
+            <span class="p-input-icon-left input-wrapper">
+              <i class="pi pi-user"></i>
+              <input
+                pInputText
+                type="text"
+                placeholder="Dela Cruz"
+                [(ngModel)]="lastName"
+                name="lastName"
+                class="input-field"
+              />
+            </span>
+          </div>
+        </div>
+
+
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <span class="p-input-icon-left input-wrapper">
+            <i class="pi pi-envelope"></i>
+            <input
+              pInputText
+              type="email"
+              placeholder="name@school.edu"
+              [(ngModel)]="email"
+              name="email"
+              class="input-field"
+            />
+          </span>
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <span class="p-input-icon-left input-wrapper">
+            <i class="pi pi-lock"></i>
+            <input
+              pInputText
+              type="password"
+              placeholder="Minimum 8 characters"
+              [(ngModel)]="password"
+              name="password"
+              class="input-field"
+            />
+          </span>
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="form-group">
+          <label class="form-label">Confirm Password</label>
+          <span class="p-input-icon-left input-wrapper">
+            <i class="pi pi-lock"></i>
+            <input
+              pInputText
+              type="password"
+              placeholder="Re-enter your password"
+              [(ngModel)]="confirmPassword"
+              name="confirmPassword"
+              class="input-field"
+            />
+          </span>
+        </div>
+
+        <!-- Register Button -->
+        <div class="form-actions">
+          <p-button
+            type="submit"
+            label="CREATE ACCOUNT"
+            icon="pi pi-user-plus"
+            [raised]="true"
+            [rounded]="true"
+            [loading]="isLoading"
+            styleClass="register-btn"
+          />
+        </div>
+      </form>
+
+      <!-- Footer -->
+      <div class="form-footer">
+        <p>Already have an account? <a routerLink="/login" class="accent-link">Sign In</a></p>
+      </div>
+    </div>
+  </div>
+</div>

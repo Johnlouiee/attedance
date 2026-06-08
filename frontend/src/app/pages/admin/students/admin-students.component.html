@@ -1,0 +1,88 @@
+<div class="students-page">
+  <div class="page-header">
+    <div class="header-left">
+      <h1>Manage Students</h1>
+      <p>View, activate, deactivate, or remove student accounts registered in the system.</p>
+    </div>
+    <div class="header-right">
+      <div class="search-box">
+        <i class="pi pi-search"></i>
+        <input 
+          type="text" 
+          [(ngModel)]="searchQuery" 
+          (ngModelChange)="applyFilter()" 
+          placeholder="Search students by name, email, or ID..." />
+      </div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <!-- Loading state -->
+    <div class="loader-container" *ngIf="isLoading">
+      <i class="pi pi-spin pi-spinner"></i>
+      <p>Loading students list...</p>
+    </div>
+
+    <!-- Data Table -->
+    <div class="table-container" *ngIf="!isLoading && filteredStudents.length > 0">
+      <table class="students-table">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Student ID</th>
+            <th>Email Address</th>
+            <th>Status</th>
+            <th>Registration Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let s of filteredStudents">
+            <td>
+              <div class="name-cell">
+                <div class="user-avatar-small">
+                  <img *ngIf="s.profilePhoto" [src]="s.profilePhoto" [alt]="getInitials(s)" />
+                  <span *ngIf="!s.profilePhoto">{{ getInitials(s) }}</span>
+                </div>
+                <div>
+                  <strong>{{ s.firstName }} {{ s.lastName }}</strong>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="id-tag">{{ s.studentId || 'N/A' }}</span>
+            </td>
+            <td>{{ s.email }}</td>
+            <td>
+              <span class="status-indicator" [class.active]="s.status === 'ACTIVE'">
+                <span class="status-dot"></span>
+                {{ s.status }}
+              </span>
+            </td>
+            <td>{{ s.createdAt | date:'MMM d, y' }}</td>
+            <td>
+              <div class="actions-cell">
+                <button 
+                  class="action-btn toggle-btn" 
+                  (click)="toggleStatus(s)"
+                  [title]="s.status === 'ACTIVE' ? 'Deactivate' : 'Activate'">
+                  <i class="pi" [class.pi-lock]="s.status === 'ACTIVE'" [class.pi-lock-open]="s.status !== 'ACTIVE'"></i>
+                </button>
+                <button class="action-btn delete-btn" (click)="deleteUser(s)" title="Delete student">
+                  <i class="pi pi-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Empty state -->
+    <div class="empty-state" *ngIf="!isLoading && filteredStudents.length === 0">
+      <i class="pi pi-users"></i>
+      <h3>No Students Found</h3>
+      <p>We couldn't find any students matching your criteria.</p>
+    </div>
+  </div>
+</div>

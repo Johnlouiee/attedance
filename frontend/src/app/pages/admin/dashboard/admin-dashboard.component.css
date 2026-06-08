@@ -1,0 +1,557 @@
+/* ============================================================
+   ADMIN DASHBOARD (WHITE & BLUE PALETTE ONLY)
+   1. Page shell
+   2. Stat cards
+   3. Main grid
+   4. Left column — analytics & table card
+      4a. Card header (tabs, search, create)
+      4b. Users list (rows, cells, badges)
+   5. Right panel
+      5a. Calendar card
+      5b. Quick-create card
+   6. Modal — create teacher dialog
+      6a. Layout (split-screen)
+      6b. Left panel
+      6c. Right panel (form)
+      6d. Feedback banners
+   7. Responsive
+   ============================================================ */
+
+
+/* ── 1. Page shell ── */
+
+.dashboard-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: #f8fafc;
+  min-height: 100%;
+}
+
+
+/* ── 2. Stat cards ── */
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.stat-card {
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(30, 58, 138, 0.08);
+  transition: transform 0.2s ease;
+}
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.15);
+}
+
+.stat-card.violet { background: linear-gradient(135deg, #1e3a8a, #3b82f6); }
+.stat-card.indigo { background: linear-gradient(135deg, #2563eb, #60a5fa); }
+.stat-card.purple { background: linear-gradient(135deg, #1e40af, #1d4ed8); }
+
+.stat-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  opacity: 0.85;
+  text-transform: uppercase;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.stat-value i {
+  font-size: 1rem;
+  opacity: 0.7;
+}
+
+
+/* ── 3. Main grid ── */
+
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.left-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+
+/* ── 4. Analytics & table card ── */
+
+.table-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.03);
+  display: flex;
+  flex-direction: column;
+}
+
+
+/* ── 4a. Card header ── */
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.card-header h2 {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #1e3a8a;
+  margin: 0;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+}
+.tabs button {
+  padding: 0.4rem 0.9rem;
+  border: none;
+  background: transparent;
+  color: #475569;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.tabs button.active {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.panel-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.search-mini {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.4rem 0.75rem;
+}
+.search-mini i {
+  color: #94a3b8;
+  font-size: 0.875rem;
+}
+.search-mini input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.85rem;
+  color: #1e293b;
+  width: 140px;
+}
+
+.create-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.2s;
+}
+.create-btn:hover {
+  opacity: 0.9;
+}
+
+
+/* ── 4b. Users list ── */
+
+.users-list {
+  min-height: 300px;
+}
+
+.user-row {
+  display: grid;
+  grid-template-columns: 2fr 2fr 1fr 1fr 1fr;
+  align-items: center;
+  padding: 0.875rem 1.5rem;
+  border-bottom: 1px solid #f8fafc;
+  gap: 0.5rem;
+  transition: background 0.15s;
+}
+.user-row:last-child {
+  border-bottom: none;
+}
+.user-row:hover {
+  background: #f0f6ff;
+}
+
+.header-row {
+  background: #f8fafc;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.75rem 1.5rem;
+}
+.header-row:hover {
+  background: #f8fafc;
+}
+
+.user-cell {
+  font-size: 0.875rem;
+  color: #334155;
+}
+
+.name-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.name-cell strong {
+  font-weight: 600;
+  color: #1e3a8a;
+  display: block;
+  font-size: 0.875rem;
+}
+.name-cell .sid {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.user-avatar-small {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb, #60a5fa);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.user-avatar-small img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.role-badge {
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.role-badge.student { background: #eff6ff; color: #2563eb; }
+.role-badge.teacher { background: #f0f9ff; color: #0369a1; }
+.role-badge.admin   { background: #1e3a8a; color: #ffffff; }
+
+.status-dot {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+}
+.status-dot.active   { color: #2563eb; }
+.status-dot.inactive { color: #94a3b8; }
+
+.actions-cell {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+.toggle-btn { background: #eff6ff; color: #2563eb; }
+.toggle-btn:hover { background: #2563eb; color: #fff; }
+.delete-btn { background: #f1f5f9; color: #475569; }
+.delete-btn:hover { background: #1e3a8a; color: #fff; }
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: #94a3b8;
+}
+.empty-state i {
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
+  display: block;
+}
+
+
+/* ── 5. Right panel ── */
+
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+
+/* ── 5a. Calendar card ── */
+
+.calendar-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(30, 58, 138, 0.02);
+}
+.cal-month {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.cal-day {
+  font-size: 4rem;
+  font-weight: 800;
+  color: #1e3a8a;
+  line-height: 1;
+  margin: 0.5rem 0;
+}
+.cal-weekday {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #2563eb;
+}
+
+
+/* ── 5b. Quick-create card ── */
+
+.quick-create-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.25rem;
+  box-shadow: 0 2px 8px rgba(30, 58, 138, 0.02);
+}
+.quick-create-card h3 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 0.875rem;
+}
+
+.quick-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+  color: #2563eb;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  margin-bottom: 0.5rem;
+  box-sizing: border-box;
+}
+.quick-btn:last-child { margin-bottom: 0; }
+.quick-btn:hover { background: #2563eb; color: #fff; }
+
+
+/* ── 6. Modal — create teacher dialog ── */
+
+::ng-deep .create-teacher-dialog .p-dialog-content {
+  padding: 0 !important;
+}
+
+
+/* ── 6a. Split layout ── */
+
+.modal-split {
+  display: flex;
+  min-height: 420px;
+}
+
+
+/* ── 6b. Left panel ── */
+
+.modal-left {
+  flex: 0 0 180px;
+  background: linear-gradient(160deg, #1e3a8a, #3b82f6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.25rem;
+  text-align: center;
+  gap: 0.75rem;
+}
+.modal-icon {
+  font-size: 2.5rem;
+  color: #93c5fd;
+}
+.modal-left h3 {
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin: 0;
+}
+.modal-left p {
+  color: #eff6ff;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  margin: 0;
+}
+.modal-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+
+/* ── 6c. Right panel (form) ── */
+
+.modal-right {
+  flex: 1;
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.form-group label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+.input-wrapper i {
+  position: absolute;
+  left: 12px;
+  color: #94a3b8;
+  font-size: 0.875rem;
+  z-index: 1;
+}
+
+::ng-deep .modal-input {
+  width: 100% !important;
+  padding-left: 2.5rem !important;
+  border-radius: 8px !important;
+  border: 1.5px solid #cbd5e1 !important;
+  font-size: 0.875rem !important;
+  transition: border-color 0.2s !important;
+}
+::ng-deep .modal-input:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+}
+
+::ng-deep .create-confirm-btn {
+  width: 100% !important;
+  justify-content: center !important;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+  border: none !important;
+  font-weight: 700 !important;
+  padding: 0.75rem !important;
+  margin-top: 0.5rem !important;
+}
+
+
+/* ── 6d. Feedback banners ── */
+
+.error-banner,
+.success-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 0.875rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.error-banner {
+  background: rgba(37, 99, 235, 0.05);
+  border: 1px solid rgba(37, 99, 235, 0.15);
+  color: #1e3a8a;
+}
+.success-banner {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #2563eb;
+}
+
+
+/* ── 7. Responsive ── */
+
+@media (max-width: 1024px) {
+  .main-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,216 @@
+<div class="dashboard-page">
+
+  <!-- ── MAIN GRID ── -->
+  <div class="main-grid">
+
+    <!-- ── LEFT COLUMN ── -->
+    <div class="left-column">
+
+      <!-- Users Table Card -->
+      <div class="table-card">
+        <div class="card-header">
+          <div class="tabs">
+            <button [class.active]="activeTab === 'all'" (click)="setTab('all')">All Users</button>
+            <button [class.active]="activeTab === 'students'" (click)="setTab('students')">Students</button>
+            <button [class.active]="activeTab === 'teachers'" (click)="setTab('teachers')">Teachers</button>
+          </div>
+          <div class="panel-actions">
+            <div class="search-mini">
+              <i class="pi pi-search"></i>
+              <input
+                type="text"
+                [(ngModel)]="searchQuery"
+                (ngModelChange)="applyFilter()"
+                placeholder="Search users..." />
+            </div>
+            <button class="create-btn p-button p-button-sm" (click)="openCreateTeacher()">
+              <i class="pi pi-user-plus"></i> Create Teacher
+            </button>
+          </div>
+        </div>
+
+        <div class="users-list">
+          <!-- Header row -->
+          <div class="user-row header-row">
+            <span>User</span>
+            <span>Email</span>
+            <span>Role</span>
+            <span>Status</span>
+            <span>Actions</span>
+          </div>
+
+          <!-- Data rows -->
+          <div class="user-row" *ngFor="let u of filteredUsers">
+
+            <!-- Name cell -->
+            <div class="name-cell">
+              <div class="user-avatar-small">
+                <img *ngIf="u.profilePhoto" [src]="u.profilePhoto" [alt]="getInitials(u)" />
+                <span *ngIf="!u.profilePhoto">{{ getInitials(u) }}</span>
+              </div>
+              <div>
+                <strong>{{ u.firstName }} {{ u.lastName }}</strong>
+                <span class="sid">{{ u.createdAt | date:'MMM d, y' }}</span>
+              </div>
+            </div>
+
+            <!-- Email cell -->
+            <div class="user-cell">{{ u.email }}</div>
+
+            <!-- Role cell -->
+            <div class="user-cell">
+              <span class="role-badge"
+                [class.student]="u.role === 'STUDENT'"
+                [class.teacher]="u.role === 'TEACHER'"
+                [class.admin]="u.role === 'ADMIN'">
+                {{ u.role }}
+              </span>
+            </div>
+
+            <!-- Status cell -->
+            <div class="user-cell">
+              <span class="status-dot" [class.active]="u.status === 'ACTIVE'" [class.inactive]="u.status !== 'ACTIVE'">
+                <i class="pi" [class.pi-check-circle]="u.status === 'ACTIVE'" [class.pi-times-circle]="u.status !== 'ACTIVE'"></i>
+                {{ u.status }}
+              </span>
+            </div>
+
+            <!-- Actions cell -->
+            <div class="actions-cell">
+              <button
+                class="action-btn toggle-btn"
+                (click)="toggleStatus(u)"
+                [title]="u.status === 'ACTIVE' ? 'Deactivate' : 'Activate'">
+                <i class="pi" [class.pi-lock]="u.status === 'ACTIVE'" [class.pi-lock-open]="u.status !== 'ACTIVE'"></i>
+              </button>
+              <button class="action-btn delete-btn" (click)="deleteUser(u)" title="Delete user">
+                <i class="pi pi-trash"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Empty state -->
+          <div class="empty-state" *ngIf="filteredUsers.length === 0">
+            <i class="pi pi-inbox"></i>
+            <p>No users found.</p>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /left-column -->
+
+    <!-- ── RIGHT PANEL ── -->
+    <div class="right-panel">
+
+      <!-- Calendar -->
+      <div class="calendar-card">
+        <div class="cal-month">{{ today | date:'MMMM yyyy' }}</div>
+        <div class="cal-day">{{ today | date:'d' }}</div>
+        <div class="cal-weekday">{{ today | date:'EEEE' }}</div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="quick-create-card">
+        <h3>Quick Actions</h3>
+        <button class="quick-btn" (click)="openCreateTeacher()">
+          <i class="pi pi-user-plus"></i> Create Teacher Account
+        </button>
+        <a routerLink="/admin/courses" class="quick-btn">
+          <i class="pi pi-book"></i> Manage Courses
+        </a>
+        <a routerLink="/admin/students" class="quick-btn">
+          <i class="pi pi-list"></i> View All Students
+        </a>
+      </div>
+
+    </div><!-- /right-panel -->
+
+  </div><!-- /main-grid -->
+
+</div><!-- /dashboard-page -->
+
+
+<!-- ── CREATE TEACHER MODAL ── -->
+<p-dialog
+  header="Create Teacher Account"
+  [(visible)]="showCreateTeacher"
+  [modal]="true"
+  [style]="{ width: '520px', 'max-width': '95vw' }"
+  [draggable]="false"
+  styleClass="create-teacher-dialog">
+
+  <div class="modal-split">
+
+    <!-- Left branding panel -->
+    <div class="modal-left">
+      <i class="pi pi-shield modal-icon"></i>
+      <h3>New Teacher</h3>
+      <p>Create a teacher account. They will be able to log in and manage their courses and attendance sessions.</p>
+      <div class="modal-badge">
+        <i class="pi pi-lock"></i> Secure Provisioning
+      </div>
+    </div>
+
+    <!-- Right form panel -->
+    <div class="modal-right">
+
+      <div *ngIf="createError" class="error-banner">
+        <i class="pi pi-exclamation-triangle"></i> {{ createError }}
+      </div>
+      <div *ngIf="createSuccess" class="success-banner">
+        <i class="pi pi-check-circle"></i> Teacher account created!
+      </div>
+
+      <div class="form-group">
+        <label>First name</label>
+        <span class="input-wrapper">
+          <i class="pi pi-user"></i>
+          <input pInputText [(ngModel)]="newTeacher.firstName" placeholder="First name" class="modal-input" />
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label>Last name</label>
+        <span class="input-wrapper">
+          <i class="pi pi-user"></i>
+          <input pInputText [(ngModel)]="newTeacher.lastName" placeholder="Last name" class="modal-input" />
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label>Email address</label>
+        <span class="input-wrapper">
+          <i class="pi pi-envelope"></i>
+          <input pInputText type="email" [(ngModel)]="newTeacher.email" placeholder="teacher@school.edu" class="modal-input" />
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label>Teacher ID / Employee Code <span style="color:#94a3b8;font-weight:400;font-size:0.78rem;">(optional)</span></label>
+        <span class="input-wrapper">
+          <i class="pi pi-id-card"></i>
+          <input pInputText [(ngModel)]="newTeacher.studentId" placeholder="e.g. T-2024-001" class="modal-input" />
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label>Temporary password</label>
+        <span class="input-wrapper">
+          <i class="pi pi-lock"></i>
+          <input pInputText type="password" [(ngModel)]="newTeacher.password" placeholder="Min 8 characters" class="modal-input" />
+        </span>
+      </div>
+
+      <p-button
+        label="Create Account"
+        icon="pi pi-user-plus"
+        [loading]="isCreating"
+        styleClass="create-confirm-btn"
+        (onClick)="createTeacher()">
+      </p-button>
+
+    </div><!-- /modal-right -->
+
+  </div><!-- /modal-split -->
+
+</p-dialog>

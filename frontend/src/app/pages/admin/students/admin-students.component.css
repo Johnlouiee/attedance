@@ -1,0 +1,261 @@
+/* ============================================================
+   ADMIN STUDENTS MANAGEMENT
+   Strictly White and Blue Palette
+   ============================================================ */
+
+.students-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: #f8fafc;
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.header-left h1 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #1e3a8a; /* Deep Navy Blue */
+  margin: 0 0 0.25rem;
+}
+
+.header-left p {
+  font-size: 0.875rem;
+  color: #475569;
+  margin: 0;
+}
+
+/* ── SEARCH BOX ── */
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 0.55rem 0.875rem;
+  box-shadow: 0 2px 4px rgba(30, 58, 138, 0.02);
+}
+
+.search-box i {
+  color: #94a3b8;
+  font-size: 0.95rem;
+}
+
+.search-box input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.875rem;
+  color: #1e293b;
+  width: 280px;
+}
+
+/* ── TABLE CARD ── */
+
+.table-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.03);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.students-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.students-table th {
+  background: #f0f6ff;
+  color: #1e3a8a;
+  font-weight: 700;
+  padding: 1rem;
+  border-bottom: 2px solid #dbeafe;
+}
+
+.students-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  color: #334155;
+}
+
+.students-table tr:last-child td {
+  border-bottom: none;
+}
+
+.students-table tr:hover td {
+  background: #f8fafc;
+}
+
+/* ── CELLS ── */
+
+.name-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.name-cell strong {
+  font-weight: 600;
+  color: #1e3a8a;
+}
+
+.user-avatar-small {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb, #60a5fa);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.user-avatar-small img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.id-tag {
+  display: inline-block;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.status-indicator .status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #cbd5e1;
+}
+
+.status-indicator.active {
+  color: #2563eb;
+}
+
+.status-indicator.active .status-dot {
+  background: #2563eb;
+}
+
+/* ── ACTIONS ── */
+
+.actions-cell {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+
+.toggle-btn {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.toggle-btn:hover {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.delete-btn {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.delete-btn:hover {
+  background: #1e3a8a;
+  color: #ffffff;
+}
+
+/* ── STATES ── */
+
+.loader-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  color: #2563eb;
+}
+
+.loader-container i {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.loader-container p {
+  color: #64748b;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #64748b;
+}
+
+.empty-state i {
+  font-size: 3rem;
+  color: #bfdbfe;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.empty-state h3 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #1e3a8a;
+  margin: 0 0 0.4rem;
+}
+
+.empty-state p {
+  font-size: 0.85rem;
+  margin: 0;
+}

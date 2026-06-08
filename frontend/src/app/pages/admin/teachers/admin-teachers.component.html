@@ -1,0 +1,159 @@
+<div class="teachers-page">
+  <div class="page-header">
+    <div class="header-left">
+      <h1>Manage Teachers</h1>
+      <p>View, configure, toggle activation status, or provision new teacher accounts.</p>
+    </div>
+    <div class="header-right">
+      <div class="panel-actions">
+        <div class="search-box">
+          <i class="pi pi-search"></i>
+          <input 
+            type="text" 
+            [(ngModel)]="searchQuery" 
+            (ngModelChange)="applyFilter()" 
+            placeholder="Search teachers by name or email..." />
+        </div>
+        <button class="create-btn" (click)="openCreateTeacher()">
+          <i class="pi pi-user-plus"></i> Create Teacher
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <!-- Loading state -->
+    <div class="loader-container" *ngIf="isLoading">
+      <i class="pi pi-spin pi-spinner"></i>
+      <p>Loading teachers list...</p>
+    </div>
+
+    <!-- Data Table -->
+    <div class="table-container" *ngIf="!isLoading && filteredTeachers.length > 0">
+      <table class="teachers-table">
+        <thead>
+          <tr>
+            <th>Teacher</th>
+            <th>Email Address</th>
+            <th>Status</th>
+            <th>Joined Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let t of filteredTeachers">
+            <td>
+              <div class="name-cell">
+                <div class="user-avatar-small">
+                  <img *ngIf="t.profilePhoto" [src]="t.profilePhoto" [alt]="getInitials(t)" />
+                  <span *ngIf="!t.profilePhoto">{{ getInitials(t) }}</span>
+                </div>
+                <div>
+                  <strong>{{ t.firstName }} {{ t.lastName }}</strong>
+                </div>
+              </div>
+            </td>
+            <td>{{ t.email }}</td>
+            <td>
+              <span class="status-indicator" [class.active]="t.status === 'ACTIVE'">
+                <span class="status-dot"></span>
+                {{ t.status }}
+              </span>
+            </td>
+            <td>{{ t.createdAt | date:'MMM d, y' }}</td>
+            <td>
+              <div class="actions-cell">
+                <button 
+                  class="action-btn toggle-btn" 
+                  (click)="toggleStatus(t)"
+                  [title]="t.status === 'ACTIVE' ? 'Deactivate' : 'Activate'">
+                  <i class="pi" [class.pi-lock]="t.status === 'ACTIVE'" [class.pi-lock-open]="t.status !== 'ACTIVE'"></i>
+                </button>
+                <button class="action-btn delete-btn" (click)="deleteUser(t)" title="Delete teacher">
+                  <i class="pi pi-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Empty state -->
+    <div class="empty-state" *ngIf="!isLoading && filteredTeachers.length === 0">
+      <i class="pi pi-user-edit"></i>
+      <h3>No Teachers Found</h3>
+      <p>We couldn't find any registered teachers matching your search criteria.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── CREATE TEACHER MODAL ── -->
+<p-dialog
+  header="Create Teacher Account"
+  [(visible)]="showCreateTeacher"
+  [modal]="true"
+  [style]="{ width: '520px', 'max-width': '95vw' }"
+  [draggable]="false"
+  styleClass="create-teacher-dialog">
+
+  <div class="modal-split">
+    <!-- Left branding panel -->
+    <div class="modal-left">
+      <i class="pi pi-shield modal-icon"></i>
+      <h3>New Teacher</h3>
+      <p>Create a teacher account. They will be able to log in and manage their courses and attendance sessions.</p>
+      <div class="modal-badge">
+        <i class="pi pi-lock"></i> Secure Provisioning
+      </div>
+    </div>
+
+    <!-- Right form panel -->
+    <div class="modal-right">
+      <div *ngIf="createError" class="error-banner">
+        <i class="pi pi-exclamation-triangle"></i> {{ createError }}
+      </div>
+      <div *ngIf="createSuccess" class="success-banner">
+        <i class="pi pi-check-circle"></i> Teacher account created!
+      </div>
+
+      <div class="form-group">
+        <label>First name</label>
+        <span class="input-wrapper">
+          <i class="pi pi-user"></i>
+          <input pInputText [(ngModel)]="newTeacher.firstName" placeholder="First name" class="modal-input" />
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label>Last name</label>
+        <span class="input-wrapper">
+          <i class="pi pi-user"></i>
+          <input pInputText [(ngModel)]="newTeacher.lastName" placeholder="Last name" class="modal-input" />
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label>Email address</label>
+        <span class="input-wrapper">
+          <i class="pi pi-envelope"></i>
+          <input pInputText type="email" [(ngModel)]="newTeacher.email" placeholder="teacher@school.edu" class="modal-input" />
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label>Temporary password</label>
+        <span class="input-wrapper">
+          <i class="pi pi-lock"></i>
+          <input pInputText type="password" [(ngModel)]="newTeacher.password" placeholder="Min 8 characters" class="modal-input" />
+        </span>
+      </div>
+
+      <button class="create-confirm-btn" [disabled]="isCreating" (click)="createTeacher()">
+        <i class="pi pi-user-plus" *ngIf="!isCreating"></i>
+        <i class="pi pi-spin pi-spinner" *ngIf="isCreating"></i>
+        Create Account
+      </button>
+    </div>
+  </div>
+</p-dialog>

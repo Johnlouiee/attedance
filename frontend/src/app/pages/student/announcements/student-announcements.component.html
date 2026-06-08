@@ -1,0 +1,45 @@
+<div class="ann-page">
+  <div class="page-header">
+    <div>
+      <h1><i class="pi pi-megaphone"></i> Announcements</h1>
+      <p>Important notices from your administrators and teachers.</p>
+    </div>
+    <div class="search-box">
+      <i class="pi pi-search"></i>
+      <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="applyFilter()" placeholder="Search announcements..." />
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loader-container" *ngIf="isLoading">
+    <i class="pi pi-spin pi-spinner"></i><p>Loading announcements...</p>
+  </div>
+
+  <!-- Cards -->
+  <div class="ann-list" *ngIf="!isLoading">
+    <div class="ann-card" *ngFor="let a of filteredAnnouncements" [class.new]="isNew(a.createdAt)">
+      <div class="ann-card-top">
+        <span class="new-pill" *ngIf="isNew(a.createdAt)">NEW</span>
+        <span class="target-badge" [ngClass]="a.targetAudience.toLowerCase()">
+          <i class="pi pi-book" *ngIf="a.targetAudience === 'COURSE'"></i>
+          <i class="pi pi-globe" *ngIf="a.targetAudience === 'ALL'"></i>
+          <i class="pi pi-graduation-cap" *ngIf="a.targetAudience === 'STUDENTS'"></i>
+          {{ audienceLabel(a) }}
+        </span>
+        <span class="ann-date">{{ a.createdAt | date:'MMM d, y · h:mm a' }}</span>
+      </div>
+      <h3 class="ann-title">{{ a.title }}</h3>
+      <p class="ann-message">{{ a.message }}</p>
+      <div class="author-chip">
+        <i class="pi pi-user"></i>
+        <span>{{ a.authorName }} <span class="role-tag">{{ a.authorRole }}</span></span>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="filteredAnnouncements.length === 0">
+      <i class="pi pi-megaphone"></i>
+      <h3>No Announcements</h3>
+      <p>There are no announcements for you at this time. Check back later.</p>
+    </div>
+  </div>
+</div>

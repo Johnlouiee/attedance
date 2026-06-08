@@ -1,0 +1,99 @@
+<div class="dashboard-container animate-fade-in">
+  <div class="profile-header-card glass-panel">
+    <div class="profile-main">
+      <div class="profile-avatar-large" style="overflow: hidden; display: flex; align-items: center; justify-content: center;">
+        <img *ngIf="user?.profilePhoto" [src]="user.profilePhoto" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;" />
+        <span *ngIf="!user?.profilePhoto">{{ user?.firstName?.charAt(0) || 'S' }}</span>
+      </div>
+      <div class="profile-details">
+        <h1 class="page-title">Welcome back, {{ user?.firstName }}!</h1>
+        <p class="page-subtitle">Student ID: {{ user?.studentId || 'Not set' }} | {{ user?.email }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-grid">
+    <div class="courses-section">
+      <div class="section-header-row">
+        <h2 class="section-title">My Enrolled Courses ({{ enrollments.length }})</h2>
+        <a routerLink="/student/schedule" class="view-all-link">Manage Schedule</a>
+      </div>
+
+      <div *ngIf="loadingCourses" class="loading-state">
+        <i class="pi pi-spin pi-spinner"></i> Loading your courses...
+      </div>
+
+      <div *ngIf="!loadingCourses && enrollments.length === 0" class="empty-state card-box">
+        <i class="pi pi-calendar-times empty-icon"></i>
+        <h3>No courses enrolled yet</h3>
+        <p>Use your teacher's invite link to join a class.</p>
+        <a routerLink="/student/join" class="manage-link">Join with Invite Link</a>
+      </div>
+
+      <div class="courses-grid" *ngIf="!loadingCourses && enrollments.length > 0">
+        <p-card styleClass="class-card" *ngFor="let course of enrollments" [style.border-left]="'4px solid ' + getCourseColor(course.code)">
+          <div class="class-header">
+            <span class="subject">{{ course.code }}: {{ course.name }}</span>
+            <span class="badge time-badge" *ngIf="activeSessionByCourse[course.courseId]">
+              <i class="pi pi-bolt"></i> Attendance Open
+            </span>
+          </div>
+          <div class="class-details">
+            <div class="detail-row">
+              <i class="pi pi-user"></i> {{ course.assignedTeacher }}
+            </div>
+            <div class="detail-row">
+              <i class="pi pi-bookmark"></i> {{ course.credits }} credits
+            </div>
+            <div class="detail-row schedule-row" *ngIf="course.scheduleLabel">
+              <i class="pi pi-clock"></i> <strong>{{ course.scheduleLabel }}</strong>
+            </div>
+            <div class="detail-row muted" *ngIf="!course.scheduleLabel">
+              <i class="pi pi-clock"></i> Schedule not set
+            </div>
+            <div class="detail-row">
+              <i class="pi pi-calendar"></i> Enrolled {{ course.enrolledAt | date:'mediumDate' }}
+            </div>
+          </div>
+          <div class="class-action" *ngIf="activeSessionByCourse[course.courseId]">
+            <p-button
+              label="Scan QR to Check-in"
+              icon="pi pi-qrcode"
+              routerLink="/student/scan"
+              [raised]="true"
+              styleClass="primary-btn w-full">
+            </p-button>
+          </div>
+        </p-card>
+      </div>
+    </div>
+
+    <div class="recent-history-section">
+      <div class="section-header-row">
+        <h2 class="section-title">Recent Check-ins</h2>
+        <a routerLink="/student/history" class="view-all-link">View All</a>
+      </div>
+
+      <div *ngIf="loadingHistory" class="loading-state">
+        <i class="pi pi-spin pi-spinner"></i> Loading history...
+      </div>
+
+      <div class="history-list" *ngIf="!loadingHistory && recentHistory.length > 0">
+        <div class="history-item" *ngFor="let item of recentHistory">
+          <div class="icon-circle" [ngClass]="getHistoryCircleClass(item.status)">
+            <i class="pi" [ngClass]="getHistoryIcon(item.status)"></i>
+          </div>
+          <div class="history-info">
+            <h4>{{ item.courseCode }}: {{ item.courseName }}</h4>
+            <span>{{ formatHistoryTime(item) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="empty-state card-box compact" *ngIf="!loadingHistory && recentHistory.length === 0">
+        <i class="pi pi-history empty-icon"></i>
+        <p>No check-ins recorded yet.</p>
+      </div>
+    </div>
+  </div>
+</div>

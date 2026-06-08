@@ -1,0 +1,92 @@
+<div class="ann-page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1>Announcements</h1>
+      <p>Announce to students in a specific course. Only enrolled students see course-specific posts.</p>
+    </div>
+    <button class="compose-btn" (click)="toggleCompose()">
+      <i class="pi" [ngClass]="showCompose ? 'pi-times' : 'pi-plus'"></i>
+      {{ showCompose ? 'Cancel' : 'New Announcement' }}
+    </button>
+  </div>
+
+  <!-- Compose Panel -->
+  <div class="compose-panel" *ngIf="showCompose">
+    <h3 class="compose-title"><i class="pi pi-send"></i> Compose Announcement</h3>
+
+    <div *ngIf="postError" class="error-banner"><i class="pi pi-exclamation-triangle"></i> {{ postError }}</div>
+    <div *ngIf="postSuccess" class="success-banner"><i class="pi pi-check-circle"></i> Announcement posted successfully!</div>
+
+    <div class="compose-grid">
+      <div class="form-group">
+        <label>Title</label>
+        <input type="text" [(ngModel)]="newAnn.title" placeholder="e.g. No class on Friday" class="form-input" />
+      </div>
+
+      <div class="form-group">
+        <label>Target Course <span class="required">*</span></label>
+        <select [(ngModel)]="newAnn.courseCode" class="form-select">
+          <option value="">-- Select Course --</option>
+          <option *ngFor="let c of myCourses" [value]="c.code">
+            {{ c.code }} — {{ c.name }}
+          </option>
+        </select>
+        <span class="hint">Only students enrolled in this course will see this announcement.</span>
+      </div>
+
+      <div class="form-group full-width">
+        <label>Message</label>
+        <textarea [(ngModel)]="newAnn.message" rows="4" placeholder="Write your message to students..." class="form-textarea"></textarea>
+      </div>
+    </div>
+
+    <div class="compose-actions">
+      <button class="post-btn" [disabled]="isPosting" (click)="post()">
+        <i class="pi pi-send" *ngIf="!isPosting"></i>
+        <i class="pi pi-spin pi-spinner" *ngIf="isPosting"></i>
+        Post to Course
+      </button>
+    </div>
+  </div>
+
+  <!-- Received / All Announcements -->
+  <div class="section-title-row">
+    <h2>All Announcements Visible To You</h2>
+  </div>
+
+  <div class="loader-container" *ngIf="isLoading">
+    <i class="pi pi-spin pi-spinner"></i><p>Loading...</p>
+  </div>
+
+  <div class="ann-list" *ngIf="!isLoading">
+    <div class="ann-card" *ngFor="let a of received">
+      <div class="ann-card-top">
+        <span class="target-badge" [ngClass]="a.targetAudience.toLowerCase()">
+          <i class="pi pi-book" *ngIf="a.targetAudience === 'COURSE'"></i>
+          <i class="pi pi-globe" *ngIf="a.targetAudience === 'ALL'"></i>
+          <i class="pi pi-users" *ngIf="a.targetAudience === 'TEACHERS'"></i>
+          {{ targetLabel(a) }}
+        </span>
+        <span class="ann-date">{{ a.createdAt | date:'MMM d, y · h:mm a' }}</span>
+
+        <button class="del-btn" *ngIf="a.authorId === 0 || true" (click)="delete(a)" title="Delete">
+          <i class="pi pi-trash"></i>
+        </button>
+      </div>
+      <h3 class="ann-title">{{ a.title }}</h3>
+      <p class="ann-message">{{ a.message }}</p>
+      <div class="author-chip">
+        <i class="pi pi-user"></i>
+        <span>{{ a.authorName }} <span class="role-tag">{{ a.authorRole }}</span></span>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="received.length === 0">
+      <i class="pi pi-megaphone"></i>
+      <h3>No Announcements Yet</h3>
+      <p>Announcements posted to teachers or all users will appear here.</p>
+    </div>
+  </div>
+</div>

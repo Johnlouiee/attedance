@@ -1,0 +1,89 @@
+<div class="admin-wrapper">
+  <!-- DARK SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <i class="pi pi-shield brand-icon"></i>
+      <span class="brand-text">Atten<span class="brand-hl">Guard</span></span>
+    </div>
+
+    <!-- Admin Profile Block -->
+    <div class="admin-profile">
+      <div class="admin-avatar-wrap">
+        <img *ngIf="user?.profilePhoto" [src]="user.profilePhoto" class="admin-avatar-img" alt="Admin" />
+        <div *ngIf="!user?.profilePhoto" class="admin-avatar-initials">
+          {{ user?.firstName?.charAt(0) || 'A' }}
+        </div>
+      </div>
+      <div class="admin-info">
+        <span class="admin-name">{{ user?.firstName }} {{ user?.lastName }}</span>
+        <span class="admin-role">Admin.</span>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav">
+      <a routerLink="/admin/dashboard" routerLinkActive="active" class="nav-item">
+        <i class="pi pi-home"></i><span>Dashboard</span>
+      </a>
+      <a routerLink="/admin/announcements" routerLinkActive="active" class="nav-item">
+        <i class="pi pi-megaphone"></i><span>Announcements</span>
+      </a>
+      <a routerLink="/admin/reports" routerLinkActive="active" class="nav-item">
+        <i class="pi pi-file"></i><span>Reports</span>
+      </a>
+      <a routerLink="/admin/students" routerLinkActive="active" class="nav-item">
+        <i class="pi pi-users"></i><span>Students</span>
+      </a>
+      <a routerLink="/admin/teachers" routerLinkActive="active" class="nav-item">
+        <i class="pi pi-user-edit"></i><span>Teachers</span>
+      </a>
+      <a routerLink="/admin/courses" routerLinkActive="active" class="nav-item">
+        <i class="pi pi-book"></i><span>Courses</span>
+      </a>
+      <a routerLink="/admin/settings" routerLinkActive="active" class="nav-item">
+        <i class="pi pi-cog"></i><span>Settings</span>
+      </a>
+    </nav>
+
+    <button class="logout-btn" (click)="logout()">
+      <i class="pi pi-sign-out"></i><span>Logout</span>
+    </button>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="admin-main">
+    <!-- Topbar with functional search -->
+    <header class="admin-topbar">
+      <h1 class="topbar-title">MY DASHBOARD</h1>
+      <div class="topbar-actions">
+        <div class="search-box">
+          <i class="pi pi-search"></i>
+          <input
+            type="text"
+            placeholder="Search students, teachers, courses..."
+            [(ngModel)]="searchQuery"
+            (keyup.enter)="runSearch()"
+            (input)="onSearchInput()" />
+          <button *ngIf="searchQuery" class="clear-search" (click)="clearSearch()">
+            <i class="pi pi-times"></i>
+          </button>
+        </div>
+        <!-- Inline suggestion dropdown -->
+        <div class="search-suggestions" *ngIf="showSuggestions && searchQuery.length > 0">
+          <div class="suggestion-item" *ngFor="let s of suggestions" (click)="goTo(s.route)">
+            <i class="pi" [ngClass]="s.icon"></i>
+            <span>{{ s.label }}</span>
+          </div>
+          <div class="suggestion-empty" *ngIf="suggestions.length === 0">
+            No matching pages found.
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <main class="admin-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>
