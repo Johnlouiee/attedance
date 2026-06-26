@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { NgIf } from '@angular/common';
@@ -13,7 +13,7 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   email = '';
   password = '';
   rememberMe = false;
@@ -21,6 +21,19 @@ export class LoginComponent {
   errorMessage = '';
 
   constructor(private authService: AuthService, private router: Router) {}
+
+  ngOnInit() {
+    const user = this.authService.getUser();
+    if (user && this.authService.isLoggedIn()) {
+      if (user.role === 'ADMIN') {
+        this.router.navigate(['/admin/dashboard']);
+      } else if (user.role === 'TEACHER') {
+        this.router.navigate(['/teacher/dashboard']);
+      } else {
+        this.router.navigate(['/student/schedule']);
+      }
+    }
+  }
 
   login() {
     this.errorMessage = '';

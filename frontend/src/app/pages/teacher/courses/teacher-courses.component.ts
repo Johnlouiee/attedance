@@ -49,14 +49,35 @@ import { formatApiError } from '../../../utils/api-error.util';
 
           <div class="invite-row" *ngIf="course.inviteToken">
             <span class="invite-label"><i class="pi pi-link"></i> Student invite</span>
-            <code class="invite-url">{{ getJoinUrl(course) }}</code>
-            <button type="button" class="btn-outline" (click)="copyInviteLink(course)">
-              <i class="pi" [ngClass]="copiedCourseId === course.id ? 'pi-check' : 'pi-copy'"></i>
-              {{ copiedCourseId === course.id ? 'Copied' : 'Copy link' }}
-            </button>
+            <ng-container *ngIf="!course.isInviteExpired; else expiredTpl">
+              <code class="invite-url">{{ getJoinUrl(course) }}</code>
+              <div class="invite-actions" style="display: flex; gap: 0.5rem; margin-top: 0.25rem;">
+                <button type="button" class="btn-outline" (click)="copyInviteLink(course)">
+                  <i class="pi" [ngClass]="copiedCourseId === course.id ? 'pi-check' : 'pi-copy'"></i>
+                  {{ copiedCourseId === course.id ? 'Copied' : 'Copy link' }}
+                </button>
+                <button type="button" class="btn-outline secondary" (click)="regenerateInvite(course)">
+                  <i class="pi pi-refresh"></i> Reset Link
+                </button>
+              </div>
+              <span class="expiry-label" style="font-size: 0.72rem; color: #d97706; margin-top: 0.2rem; display: block; font-weight: 600;">
+                <i class="pi pi-clock"></i> Expires in 1 hour
+              </span>
+            </ng-container>
+            <ng-template #expiredTpl>
+              <span class="invite-url-expired" style="color: #dc2626; font-weight: 700; font-size: 0.8rem; display: block; margin: 0.25rem 0; background: #fee2e2; padding: 0.4rem 0.6rem; border-radius: 6px; border: 1px solid #fca5a5;">
+                <i class="pi pi-exclamation-triangle"></i> This invite link has expired.
+              </span>
+              <button type="button" class="btn-outline" (click)="regenerateInvite(course)" style="background: #2563eb; color: #fff; border-color: #2563eb;">
+                <i class="pi pi-refresh"></i> Generate New Link
+              </button>
+            </ng-template>
           </div>
 
           <div class="course-card-actions">
+            <a [routerLink]="['/teacher/courses', course.id, 'roster']" class="btn-modules" style="background: #f0fdf4; color: #166534; border-color: #bbf7d0;">
+              <i class="pi pi-users"></i> Roster
+            </a>
             <a routerLink="/teacher/modules" class="btn-modules">
               <i class="pi pi-folder-open"></i> Modules
             </a>
@@ -180,6 +201,14 @@ import { formatApiError } from '../../../utils/api-error.util';
       align-self: flex-start; display: inline-flex; align-items: center; gap: 0.35rem;
       background: #fff; border: 1px solid #86efac; color: #166534; border-radius: 8px;
       padding: 0.35rem 0.75rem; font-size: 0.8rem; font-weight: 600; cursor: pointer;
+    }
+    .btn-outline.secondary {
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #cbd5e1;
+    }
+    .btn-outline.secondary:hover {
+      background: #e2e8f0;
     }
     .course-card-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: auto; }
     .btn-modules, .btn-edit, .btn-delete {
@@ -472,15 +501,31 @@ export class TeacherCoursesComponent implements OnInit {
   }
 
   getJoinUrl(course: TeacherCourse) {
-    return course.inviteToken ? buildStudentJoinUrl(course.inviteToken) : '';
+    return course.inviteLink || '';
   }
 
   copyInviteLink(course: TeacherCourse) {
-    if (!course.inviteToken) return;
-    navigator.clipboard.writeText(buildStudentJoinUrl(course.inviteToken));
-    this.copiedCourseId = course.id;
-    setTimeout(() => {
-      if (this.copiedCourseId === course.id) this.copiedCourseId = null;
-    }, 2500);
+    if (!course.inviteLink) return;
+    navigator.clipboard.writeText(course.inviteLink).then(() => {
+      this.copiedCourseId = course.id;
+      setTimeout(() => {
+        if (this.copiedCourseId === course.id) this.copiedCourseId = null;
+      }, 2500);
+    });
+  }
+
+  regenerateInvite(course: TeacherCourse) {
+    this.apiService.regenerateInviteLink(course.id).subscribe({
+      next: (updatedCourse) => {
+        course.inviteToken = updatedCourse.inviteToken;
+        course.inviteTokenExpiresAt = updatedCourse.inviteTokenExpiresAt;
+        course.inviteLink = updatedCourse.inviteLink;
+        course.isInviteExpired = updatedCourse.isInviteExpired;
+      },
+      error: (err) => {
+        console.error('Failed to regenerate invite link', err);
+        alert('Failed to regenerate invite link. Please try again.');
+      }
+    });
   }
 }

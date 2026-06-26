@@ -145,7 +145,7 @@
     <div class="modal-left">
       <i class="pi pi-shield modal-icon"></i>
       <h3>New Teacher</h3>
-      <p>Create a teacher account. They will be able to log in and manage their courses and attendance sessions.</p>
+      <p>Create a teacher account. The teacher logs in using their <strong>Teacher ID</strong> and temporary password. They set their email during first login to activate their account.</p>
       <div class="modal-badge">
         <i class="pi pi-lock"></i> Secure Provisioning
       </div>
@@ -178,18 +178,10 @@
       </div>
 
       <div class="form-group">
-        <label>Email address</label>
-        <span class="input-wrapper">
-          <i class="pi pi-envelope"></i>
-          <input pInputText type="email" [(ngModel)]="newTeacher.email" placeholder="teacher@school.edu" class="modal-input" />
-        </span>
-      </div>
-
-      <div class="form-group">
-        <label>Teacher ID / Employee Code <span style="color:#94a3b8;font-weight:400;font-size:0.78rem;">(optional)</span></label>
+        <label>Teacher ID / Employee Code</label>
         <span class="input-wrapper">
           <i class="pi pi-id-card"></i>
-          <input pInputText [(ngModel)]="newTeacher.studentId" placeholder="e.g. T-2024-001" class="modal-input" />
+          <input pInputText [(ngModel)]="newTeacher.teacherId" placeholder="e.g. T-2024-001" class="modal-input" />
         </span>
       </div>
 

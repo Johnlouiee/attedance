@@ -122,7 +122,7 @@ export class StudentJoinComponent implements OnInit {
     const token = this.route.snapshot.paramMap.get('token');
     if (token) {
       this.inviteInput = token;
-      this.preview();
+      this.join();
     }
   }
 

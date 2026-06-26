@@ -22,7 +22,7 @@ export class AdminTeachersComponent implements OnInit {
 
   // Create Teacher Modal
   showCreateTeacher = false;
-  newTeacher = { firstName: '', lastName: '', email: '', password: '' };
+  newTeacher = { firstName: '', lastName: '', password: '' };
   isCreating = false;
   createSuccess = false;
   createError = '';
@@ -50,7 +50,7 @@ export class AdminTeachersComponent implements OnInit {
   applyFilter() {
     const q = this.searchQuery.toLowerCase();
     this.filteredTeachers = q
-      ? this.teachers.filter(u => `${u.firstName} ${u.lastName} ${u.email}`.toLowerCase().includes(q))
+      ? this.teachers.filter(u => `${u.firstName} ${u.lastName} ${u.email || ''} ${u.studentId || ''}`.toLowerCase().includes(q))
       : this.teachers;
   }
 
@@ -73,7 +73,7 @@ export class AdminTeachersComponent implements OnInit {
   }
 
   openCreateTeacher() {
-    this.newTeacher = { firstName: '', lastName: '', email: '', password: '' };
+    this.newTeacher = { firstName: '', lastName: '', password: '' };
     this.createError = '';
     this.createSuccess = false;
     this.showCreateTeacher = true;
@@ -81,7 +81,7 @@ export class AdminTeachersComponent implements OnInit {
 
   createTeacher() {
     this.createError = '';
-    if (!this.newTeacher.firstName || !this.newTeacher.lastName || !this.newTeacher.email || !this.newTeacher.password) {
+    if (!this.newTeacher.firstName || !this.newTeacher.lastName || !this.newTeacher.password) {
       this.createError = 'All fields are required.';
       return;
     }

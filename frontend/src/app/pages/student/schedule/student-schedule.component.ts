@@ -18,9 +18,34 @@ import { AdminApiService, AttendanceSession, CourseEnrollment } from '../../../s
       <div class="card-box enrollment-section">
         <h2 class="section-title"><i class="pi pi-link"></i> Join a Class</h2>
         <p class="section-desc">Your teacher will share an invite link. Paste it to add their subject to your personal schedule.</p>
-        <a routerLink="/student/join" class="btn btn-primary join-link-btn">
-          <i class="pi pi-sign-in"></i> Join with Invite Link
-        </a>
+        
+        <div class="join-input-group" style="display: flex; gap: 0.75rem; max-width: 600px; margin-bottom: 0.5rem; flex-wrap: wrap;">
+          <input
+            type="text"
+            [(ngModel)]="inviteInput"
+            placeholder="Paste teacher invite link here (e.g. http://192.168.1.100:4200/student/join/...)"
+            style="flex: 1; min-width: 250px; border: 1.5px solid #cbd5e1; border-radius: 10px; padding: 0.75rem 1rem; font-size: 0.9rem;"
+            [disabled]="joining"
+            (keyup.enter)="joinClass()"
+          />
+          <button
+            type="button"
+            class="btn btn-primary"
+            (click)="joinClass()"
+            [disabled]="joining || !inviteInput.trim()"
+            style="white-space: nowrap;"
+          >
+            <i class="pi" [ngClass]="joining ? 'pi-spin pi-spinner' : 'pi-plus-circle'"></i>
+            {{ joining ? 'Joining...' : 'Join Class' }}
+          </button>
+        </div>
+
+        <div *ngIf="joinSuccess" class="alert alert-success animate-slide-in" style="margin-top: 0.5rem;">
+          <i class="pi pi-check-circle"></i> {{ joinSuccess }}
+        </div>
+        <div *ngIf="joinError" class="alert alert-danger animate-slide-in" style="margin-top: 0.5rem;">
+          <i class="pi pi-exclamation-circle"></i> {{ joinError }}
+        </div>
       </div>
 
       <!-- Enrolled Courses -->
@@ -326,6 +351,11 @@ export class StudentScheduleComponent implements OnInit {
   successMessage = '';
   errorMessage = '';
 
+  inviteInput = '';
+  joining = false;
+  joinSuccess = '';
+  joinError = '';
+
   constructor(private apiService: AdminApiService) {}
 
   ngOnInit() {
@@ -397,5 +427,28 @@ export class StudentScheduleComponent implements OnInit {
     ];
     const index = Math.abs(hash) % colors.length;
     return colors[index];
+  }
+
+  joinClass() {
+    if (!this.inviteInput.trim()) return;
+    this.joining = true;
+    this.joinSuccess = '';
+    this.joinError = '';
+
+    this.apiService.joinCourseByInvite(this.inviteInput.trim()).subscribe({
+      next: (res) => {
+        this.joining = false;
+        this.joinSuccess = res.message || 'Successfully joined the class!';
+        this.inviteInput = '';
+        this.loadEnrollments();
+        this.loadActiveSessions();
+        setTimeout(() => this.joinSuccess = '', 4000);
+      },
+      error: (err) => {
+        this.joining = false;
+        this.joinError = err.error?.message || 'Could not join this class. Make sure the invite link is valid and not expired.';
+        setTimeout(() => this.joinError = '', 6000);
+      }
+    });
   }
 }

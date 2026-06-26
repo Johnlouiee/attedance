@@ -33,7 +33,7 @@ export class AdminDashboardComponent implements OnInit {
 
   // Create Teacher Modal
   showCreateTeacher = false;
-  newTeacher = { firstName: '', lastName: '', email: '', password: '', studentId: '' };
+  newTeacher = { firstName: '', lastName: '', teacherId: '', password: '' };
   isCreating = false;
   createSuccess = false;
   createError = '';
@@ -96,7 +96,7 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   openCreateTeacher() {
-    this.newTeacher = { firstName: '', lastName: '', email: '', password: '', studentId: '' };
+    this.newTeacher = { firstName: '', lastName: '', teacherId: '', password: '' };
     this.createError = '';
     this.createSuccess = false;
     this.showCreateTeacher = true;
@@ -104,8 +104,8 @@ export class AdminDashboardComponent implements OnInit {
 
   createTeacher() {
     this.createError = '';
-    if (!this.newTeacher.firstName || !this.newTeacher.lastName || !this.newTeacher.email || !this.newTeacher.password) {
-      this.createError = 'All fields except Teacher ID are required.';
+    if (!this.newTeacher.firstName || !this.newTeacher.lastName || !this.newTeacher.teacherId || !this.newTeacher.password) {
+      this.createError = 'First name, last name, Teacher ID, and password are required.';
       return;
     }
     this.isCreating = true;

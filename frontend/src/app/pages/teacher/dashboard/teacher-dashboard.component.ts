@@ -37,6 +37,19 @@ interface AgendaItem {
   template: `
     <div class="page-container animate-fade-in">
 
+      <!-- Active Attendance Banners -->
+      <ng-container *ngFor="let cls of classes">
+        <div class="active-attendance-banner" *ngIf="cls.activeSession && cls.attendanceStarted">
+          <div class="banner-content">
+            <span class="banner-live-dot"></span>
+            <span>Active Attendance for <strong>{{ cls.code }}</strong> — Code: <strong class="banner-phrase-code">{{ formatPhraseCode(cls.activeSession.checkInCode) }}</strong></span>
+          </div>
+          <button type="button" class="banner-btn" (click)="scrollToClassCard(cls)">
+            View QR <i class="pi pi-arrow-right"></i>
+          </button>
+        </div>
+      </ng-container>
+
       <!-- Header -->
       <div class="page-header">
         <div class="header-left">
@@ -115,7 +128,7 @@ interface AgendaItem {
           </div>
 
           <div class="class-list" *ngIf="!loadingCourses && classes.length > 0">
-            <div class="class-card" *ngFor="let cls of classes">
+            <div class="class-card" *ngFor="let cls of classes" [id]="'class-card-' + cls.id">
               <div class="class-top">
                 <div class="class-info">
                   <span class="course-code-badge">{{ cls.code }}</span>
@@ -124,15 +137,45 @@ interface AgendaItem {
                   <p class="course-schedule" *ngIf="cls.scheduleLabel">
                     <i class="pi pi-clock"></i> {{ cls.scheduleLabel }}
                     <span class="schedule-days-pill">{{ formatDays(cls.classDays) }}</span>
-                    <span class="auto-hint">· Auto-starts {{ getAutoStartLabel(cls) }}</span>
+                    
+                    <!-- Autostart switch tag button -->
+                    <button
+                      type="button"
+                      class="auto-start-toggle-tag"
+                      [class.enabled]="cls.enableAutoStart"
+                      (click)="toggleAutoStart(cls); $event.stopPropagation()"
+                      [title]="cls.enableAutoStart ? 'Click to disable auto-attendance' : 'Click to enable auto-attendance'"
+                    >
+                      <i class="pi" [ngClass]="cls.enableAutoStart ? 'pi-check-circle' : 'pi-times-circle'"></i>
+                      Auto-start: {{ cls.enableAutoStart ? 'ON' : 'OFF' }}
+                    </button>
+                    <span class="auto-hint" *ngIf="cls.enableAutoStart">· Starts {{ getAutoStartLabel(cls) }}</span>
                   </p>
                   <div class="invite-box" *ngIf="cls.inviteToken">
                     <span class="invite-label"><i class="pi pi-link"></i> Student invite link</span>
-                    <code class="invite-url">{{ getJoinUrl(cls) }}</code>
-                    <button type="button" class="copy-invite-btn" (click)="copyInviteLink(cls)">
-                      <i class="pi" [ngClass]="copiedCourseId === cls.id ? 'pi-check' : 'pi-copy'"></i>
-                      {{ copiedCourseId === cls.id ? 'Copied' : 'Copy link' }}
-                    </button>
+                    <ng-container *ngIf="!cls.isInviteExpired; else expiredTpl">
+                      <code class="invite-url">{{ getJoinUrl(cls) }}</code>
+                      <div class="invite-actions" style="display: flex; gap: 0.5rem; margin-top: 0.25rem;">
+                        <button type="button" class="copy-invite-btn" (click)="copyInviteLink(cls)">
+                          <i class="pi" [ngClass]="copiedCourseId === cls.id ? 'pi-check' : 'pi-copy'"></i>
+                          {{ copiedCourseId === cls.id ? 'Copied' : 'Copy link' }}
+                        </button>
+                        <button type="button" class="copy-invite-btn secondary" (click)="regenerateInvite(cls)">
+                          <i class="pi pi-refresh"></i> Reset Link
+                        </button>
+                      </div>
+                      <span class="expiry-label" style="font-size: 0.72rem; color: #d97706; margin-top: 0.2rem; display: block; font-weight: 600;">
+                        <i class="pi pi-clock"></i> Expires in 1 hour
+                      </span>
+                    </ng-container>
+                    <ng-template #expiredTpl>
+                      <span class="invite-url-expired" style="color: #dc2626; font-weight: 700; font-size: 0.8rem; display: block; margin: 0.25rem 0; background: #fee2e2; padding: 0.4rem 0.6rem; border-radius: 6px; border: 1px solid #fca5a5;">
+                        <i class="pi pi-exclamation-triangle"></i> This invite link has expired.
+                      </span>
+                      <button type="button" class="copy-invite-btn" (click)="regenerateInvite(cls)" style="background: #2563eb;">
+                        <i class="pi pi-refresh"></i> Generate New Link
+                      </button>
+                    </ng-template>
                   </div>
                 </div>
                 <div class="class-metrics">
@@ -145,9 +188,9 @@ interface AgendaItem {
 
               <!-- Nav Shortcuts -->
               <div class="class-shortcuts">
-                <button class="shortcut-btn">
+                <a [routerLink]="['/teacher/courses', cls.id, 'roster']" class="shortcut-btn" style="text-decoration: none;">
                   <i class="pi pi-list"></i> Roster
-                </button>
+                </a>
                 <button class="shortcut-btn">
                   <i class="pi pi-chart-bar"></i> Analytics
                 </button>
@@ -182,13 +225,20 @@ interface AgendaItem {
                       alt="Attendance QR code"
                       class="qr-image"
                     />
-                    <span class="qr-rotate-badge">
-                      <i class="pi pi-refresh"></i> Refreshes every 1 min
-                    </span>
+                    <button
+                      type="button"
+                      class="qr-rotate-badge-btn"
+                      (click)="refreshQrManually(cls)"
+                      title="Click to refresh QR manually"
+                    >
+                      <i class="pi pi-refresh"></i> Refresh QR Manually
+                    </button>
                   </div>
                   <div class="manual-code">
                     <span class="qr-label">Phrase Code</span>
-                    <strong>{{ formatPhraseCode(session.checkInCode) }}</strong>
+                    <strong style="display: block; font-size: 2.2rem; color: #1e3a8a; font-weight: 900; letter-spacing: 0.05em; margin: 0.25rem 0 0.5rem;">
+                      {{ formatPhraseCode(session.checkInCode) }}
+                    </strong>
                     <div class="qr-actions">
                       <a *ngIf="cls.qrDataUrl" [href]="cls.qrDataUrl" [download]="cls.code + '-attendance-qr.png'" class="download-qr">
                         <i class="pi pi-download"></i> Download QR
@@ -199,6 +249,9 @@ interface AgendaItem {
                       </label>
                       <button *ngIf="cls.uploadedQrUrl" type="button" class="reset-qr-btn" (click)="clearUploadedQr(cls)">
                         Use generated QR
+                      </button>
+                      <button type="button" class="refresh-tag-btn" (click)="refreshQrManually(cls)">
+                        <i class="pi pi-refresh"></i> Refresh Code
                       </button>
                     </div>
                   </div>
@@ -380,6 +433,14 @@ interface AgendaItem {
       font-weight: 700;
       cursor: pointer;
     }
+    .copy-invite-btn.secondary {
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #cbd5e1;
+    }
+    .copy-invite-btn.secondary:hover {
+      background: #e2e8f0;
+    }
     .classes-panel { width: 100%; }
     .agenda-timeline { display: flex; flex-direction: column; }
     .agenda-item { display: flex; gap: 1rem; }
@@ -554,6 +615,77 @@ interface AgendaItem {
     .qr-rotate-badge i { font-size: 0.65rem; }
     .attendance-error { margin: 0; color: #b91c1c; font-size: 0.82rem; font-weight: 600; }
 
+    /* Active Attendance Top Banner */
+    .active-attendance-banner {
+      display: flex; justify-content: space-between; align-items: center;
+      background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: #fff;
+      border-radius: 12px; padding: 1rem 1.5rem; margin-bottom: 1rem;
+      box-shadow: 0 4px 14px rgba(59,130,246,0.25);
+      animation: slideIn 0.3s ease-out;
+    }
+    @keyframes slideIn { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .banner-content { display: flex; align-items: center; gap: 0.75rem; font-size: 0.95rem; }
+    .banner-live-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: #4ade80;
+      box-shadow: 0 0 8px #4ade80; animation: pulse 1.5s infinite;
+    }
+    .banner-phrase-code { background: rgba(255, 255, 255, 0.2); padding: 0.2rem 0.6rem; border-radius: 6px; font-family: monospace; font-size: 1.05rem; }
+    .banner-btn {
+      background: #ffffff; color: #1e3a8a; border: none; border-radius: 8px;
+      padding: 0.4rem 0.9rem; font-size: 0.85rem; font-weight: 700; cursor: pointer;
+      transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 0.35rem;
+    }
+    .banner-btn:hover { background: #eff6ff; transform: translateX(2px); }
+
+    .qr-rotate-badge-btn {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      background: #eff6ff; color: #1e40af;
+      font-size: 0.68rem; font-weight: 700;
+      border-radius: 20px; padding: 0.18rem 0.6rem;
+      border: 1px solid #93c5fd;
+      white-space: nowrap; cursor: pointer;
+      transition: all 0.2s ease;
+      margin-top: 0.4rem;
+    }
+    .qr-rotate-badge-btn:hover {
+      background: #1e3a8a; color: #ffffff; border-color: #1d4ed8;
+    }
+
+    .refresh-tag-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      border: 1px solid #bbf7d0;
+      background: #f0fdf4;
+      color: #166534;
+      border-radius: 8px;
+      padding: 0.25rem 0.55rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .refresh-tag-btn:hover {
+      background: #16a34a;
+      color: #ffffff;
+      border-color: #15803d;
+    }
+
+    .auto-start-toggle-tag {
+      display: inline-flex; align-items: center; gap: 0.25rem;
+      border: 1px solid #cbd5e1; background: #f1f5f9; color: #475569;
+      font-size: 0.72rem; font-weight: 700; border-radius: 6px;
+      padding: 0.15rem 0.45rem; cursor: pointer; transition: all 0.2s ease;
+      margin-left: 0.35rem; font-family: 'Inter', sans-serif;
+    }
+    .auto-start-toggle-tag.enabled {
+      background: #dcfce7; color: #15803d; border-color: #86efac;
+    }
+    .auto-start-toggle-tag:hover {
+      transform: translateY(-0.5px); filter: brightness(0.96);
+    }
+    .auto-start-toggle-tag i { font-size: 0.72rem; }
+
     /* ─── Submissions Sidebar ────────────────────────────────────── */
     .pending-badge {
       display: inline-flex; align-items: center; gap: 0.35rem;
@@ -648,6 +780,12 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
           attendanceError: '',
           qrDataUrl: ''
         }));
+        // Sort chronologically by classStartTime
+        this.classes.sort((a, b) => {
+          if (!a.classStartTime) return 1;
+          if (!b.classStartTime) return -1;
+          return a.classStartTime.localeCompare(b.classStartTime);
+        });
         this.classes.forEach(cls => this.syncActiveSession(cls));
         this.buildTodayAgenda();
         this.startQrRefreshLoop();
@@ -661,17 +799,31 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
   }
 
   getJoinUrl(cls: TeacherCourse) {
-    return cls.inviteToken ? buildStudentJoinUrl(cls.inviteToken) : '';
+    return cls.inviteLink || '';
   }
 
   copyInviteLink(cls: TeacherCourse) {
-    if (!cls.inviteToken) return;
-    const url = buildStudentJoinUrl(cls.inviteToken);
-    navigator.clipboard.writeText(url).then(() => {
+    if (!cls.inviteLink) return;
+    navigator.clipboard.writeText(cls.inviteLink).then(() => {
       this.copiedCourseId = cls.id;
       setTimeout(() => {
         if (this.copiedCourseId === cls.id) this.copiedCourseId = null;
       }, 2500);
+    });
+  }
+
+  regenerateInvite(cls: TeacherCourse) {
+    this.apiService.regenerateInviteLink(cls.id).subscribe({
+      next: (updatedCourse) => {
+        cls.inviteToken = updatedCourse.inviteToken;
+        cls.inviteTokenExpiresAt = updatedCourse.inviteTokenExpiresAt;
+        cls.inviteLink = updatedCourse.inviteLink;
+        cls.isInviteExpired = updatedCourse.isInviteExpired;
+      },
+      error: (err) => {
+        console.error('Failed to regenerate invite link', err);
+        alert('Failed to regenerate invite link. Please try again.');
+      }
     });
   }
 
@@ -894,6 +1046,52 @@ export class TeacherDashboardComponent implements OnInit, OnDestroy {
       return 'Everyday';
     }
     return parts.map(d => dayMap[d] || '').filter(Boolean).join(', ');
+  }
+
+  refreshQrManually(cls: DashboardClass) {
+    if (!cls.activeSession) return;
+    cls.attendanceLoading = true;
+    this.apiService.getAttendanceToken(cls.activeSession.id).subscribe({
+      next: (session) => {
+        if (session.status === 'CLOSED') {
+          cls.activeSession = null;
+          cls.attendanceStarted = false;
+          cls.qrDataUrl = '';
+        } else {
+          cls.activeSession = session;
+          this.renderQr(cls);
+        }
+        cls.attendanceLoading = false;
+      },
+      error: () => {
+        this.syncActiveSession(cls);
+        cls.attendanceLoading = false;
+      }
+    });
+  }
+
+  scrollToClassCard(cls: DashboardClass) {
+    const element = document.getElementById(`class-card-${cls.id}`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+
+  toggleAutoStart(cls: DashboardClass) {
+    const nextVal = !cls.enableAutoStart;
+    cls.attendanceLoading = true;
+    cls.attendanceError = '';
+    this.apiService.updateCourse(cls.id, { enableAutoStart: nextVal }).subscribe({
+      next: () => {
+        cls.enableAutoStart = nextVal;
+        cls.attendanceLoading = false;
+      },
+      error: (err) => {
+        console.error('Failed to toggle auto-start setting:', err);
+        cls.attendanceError = 'Failed to toggle auto-start setting.';
+        cls.attendanceLoading = false;
+      }
+    });
   }
 
 }

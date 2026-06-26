@@ -60,7 +60,7 @@ export class AdminApiService {
     return this.http.get<UserRecord[]>(`${API_BASE}/admin/teachers`, { headers: this.headers() });
   }
 
-  createTeacher(dto: { firstName: string; lastName: string; email: string; password: string; studentId?: string }): Observable<any> {
+  createTeacher(dto: { firstName: string; lastName: string; teacherId?: string; password: string }): Observable<any> {
     return this.http.post(`${API_BASE}/admin/teacher`, dto, { headers: this.headers() });
   }
 
@@ -100,6 +100,7 @@ export class AdminApiService {
     classStartTime?: string;
     classEndTime?: string;
     classDays?: string;
+    enableAutoStart?: boolean;
   }): Observable<any> {
     return this.http.patch<any>(`${API_BASE}/courses/${id}`, dto, { headers: this.headers() });
   }
@@ -245,6 +246,40 @@ export class AdminApiService {
       { headers: this.headers() },
     );
   }
+
+  getCourseAttendanceHistory(courseId: number): Observable<CourseHistoryStudentView | CourseHistoryTeacherView> {
+    return this.http.get<CourseHistoryStudentView | CourseHistoryTeacherView>(
+      `${API_BASE}/attendance/courses/${courseId}/history`,
+      { headers: this.headers() },
+    );
+  }
+
+  getCourseRoster(courseId: number): Observable<RosterStudent[]> {
+    return this.http.get<RosterStudent[]>(`${API_BASE}/courses/${courseId}/roster`, { headers: this.headers() });
+  }
+
+  enrollStudent(courseId: number, studentIdOrEmail: string): Observable<{ message: string; enrollment: RosterStudent }> {
+    return this.http.post<{ message: string; enrollment: RosterStudent }>(
+      `${API_BASE}/courses/${courseId}/enroll`,
+      { studentIdOrEmail },
+      { headers: this.headers() }
+    );
+  }
+
+  unenrollStudentFromCourse(courseId: number, enrollmentId: number): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(
+      `${API_BASE}/courses/${courseId}/unenroll/${enrollmentId}`,
+      { headers: this.headers() }
+    );
+  }
+
+  regenerateInviteLink(courseId: number): Observable<TeacherCourse> {
+    return this.http.post<TeacherCourse>(
+      `${API_BASE}/courses/${courseId}/regenerate-invite`,
+      {},
+      { headers: this.headers() }
+    );
+  }
 }
 
 export interface TeacherAttendanceStudentRow {
@@ -309,6 +344,16 @@ export interface JoinCoursePreview {
   inviteToken?: string;
 }
 
+export interface RosterStudent {
+  enrollmentId: number;
+  studentId: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  studentNumber: string;
+  enrolledAt: string;
+}
+
 export interface TeacherCourse {
   id: number;
   code: string;
@@ -320,8 +365,12 @@ export interface TeacherCourse {
   classEndTime?: string | null;
   classDays?: string;
   autoStartOffsetMinutes?: number;
+  enableAutoStart?: boolean;
   scheduleLabel?: string | null;
   inviteToken?: string | null;
+  inviteTokenExpiresAt?: string | null;
+  inviteLink?: string;
+  isInviteExpired?: boolean;
 }
 
 export interface CourseModuleRecord {
@@ -372,4 +421,46 @@ export interface AttendanceHistoryRecord {
   status: 'PRESENT' | 'LATE' | 'ABSENT';
   scannedAt: string | null;
   createdAt: string;
+}
+
+// Per-course attendance history interfaces
+export interface CourseHistoryStudentSession {
+  sessionId: number;
+  startedAt: string;
+  endedAt: string;
+  status: 'PRESENT' | 'LATE' | 'ABSENT' | null;
+  scannedAt: string | null;
+}
+
+export interface CourseHistoryStudentView {
+  courseId: number;
+  courseCode: string;
+  courseName: string;
+  sessions: CourseHistoryStudentSession[];
+}
+
+export interface CourseHistoryStudentRecord {
+  studentId: number;
+  studentName: string;
+  studentNumber: string;
+  status: 'PRESENT' | 'LATE' | 'ABSENT';
+  scannedAt: string | null;
+}
+
+export interface CourseHistoryTeacherSession {
+  sessionId: number;
+  startedAt: string;
+  endedAt: string;
+  presentCount: number;
+  lateCount: number;
+  absentCount: number;
+  totalCount: number;
+  records: CourseHistoryStudentRecord[];
+}
+
+export interface CourseHistoryTeacherView {
+  courseId: number;
+  courseCode: string;
+  courseName: string;
+  sessions: CourseHistoryTeacherSession[];
 }

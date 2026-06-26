@@ -15,7 +15,7 @@ import { AuthService } from '../../../services/auth.service';
 })
 export class AdminSettingsComponent implements OnInit {
   user: any = null;
-  profile = { firstName: '', lastName: '', studentId: '' };
+  profile = { firstName: '', lastName: '', studentId: '', contactNumber: '', password: '' };
   
   isSaving = false;
   saveSuccess = false;
@@ -31,6 +31,8 @@ export class AdminSettingsComponent implements OnInit {
           this.profile.firstName = u.firstName || '';
           this.profile.lastName = u.lastName || '';
           this.profile.studentId = u.studentId || '';
+          this.profile.contactNumber = u.contactNumber || '';
+          this.profile.password = '';
         }
       }
     });
@@ -41,10 +43,22 @@ export class AdminSettingsComponent implements OnInit {
     this.saveSuccess = false;
     this.isSaving = true;
 
-    this.authService.updateProfile(this.profile).subscribe({
+    // Filter empty password to not submit it if unchanged
+    const payload: any = {
+      firstName: this.profile.firstName,
+      lastName: this.profile.lastName,
+      studentId: this.profile.studentId,
+      contactNumber: this.profile.contactNumber
+    };
+    if (this.profile.password.trim()) {
+      payload.password = this.profile.password;
+    }
+
+    this.authService.updateProfile(payload).subscribe({
       next: () => {
         this.isSaving = false;
         this.saveSuccess = true;
+        this.profile.password = '';
         setTimeout(() => this.saveSuccess = false, 3000);
       },
       error: (err) => {

@@ -60,6 +60,22 @@
         </div>
 
         <div class="form-group">
+          <label>Contact Number</label>
+          <span class="input-wrapper">
+            <i class="pi pi-phone"></i>
+            <input pInputText [(ngModel)]="profile.contactNumber" name="contactNumber" placeholder="Contact number" class="settings-input" />
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label>New Password (leave blank to keep current)</label>
+          <span class="input-wrapper">
+            <i class="pi pi-lock"></i>
+            <input pInputText type="password" [(ngModel)]="profile.password" name="password" placeholder="New password" class="settings-input" />
+          </span>
+        </div>
+
+        <div class="form-group">
           <label>Security Role</label>
           <span class="input-wrapper disabled">
             <i class="pi pi-shield"></i>
