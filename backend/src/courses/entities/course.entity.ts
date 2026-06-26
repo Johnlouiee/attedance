@@ -31,6 +31,17 @@ export class Course {
   })
   inviteToken: string | null;
 
+  @Column({ type: 'datetime', nullable: true })
+  inviteTokenExpiresAt: Date | null;
+
+  /** Short-lived invite token (expires after 1 hour) */
+  @Column({ type: 'varchar', length: 64, nullable: true })
+  tempInviteToken: string | null;
+
+  /** Expiry datetime for the temp invite token */
+  @Column({ type: 'datetime', nullable: true })
+  tempInviteExpiry: Date | null;
+
   @Column({ default: 3 })
   credits: number;
 
@@ -38,7 +49,7 @@ export class Course {
   description: string;
 
   @Column({ nullable: true })
-  teacherId: number;
+  teacherId: number | null;
 
   @Column({
     type: 'varchar',
@@ -63,6 +74,9 @@ export class Course {
   /** Minutes after class start to auto-open attendance (default 5 → 1:35 for 1:30 class) */
   @Column({ type: 'int', default: 5 })
   autoStartOffsetMinutes: number;
+
+  @Column({ type: 'boolean', default: true })
+  enableAutoStart: boolean;
 
   @CreateDateColumn()
   createdAt: Date;

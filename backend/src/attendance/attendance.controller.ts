@@ -81,4 +81,10 @@ export class AttendanceController {
   getTeacherTracking(@Request() req: any) {
     return this.service.getTeacherTrackingSummary(req.user.sub);
   }
+
+  /** GET /api/v1/attendance/courses/:courseId/history — per-course session history (student sees own record, teacher sees all) */
+  @Get('courses/:courseId/history')
+  getCourseHistory(@Param('courseId', ParseIntPipe) courseId: number, @Request() req: any) {
+    return this.service.getHistoryByCourse(req.user.sub, courseId, req.user.role);
+  }
 }

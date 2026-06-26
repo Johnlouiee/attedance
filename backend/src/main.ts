@@ -19,6 +19,11 @@ async function bootstrap() {
     prefix: '/pictures/',
   });
 
+  // Set request payload size limits to prevent PayloadTooLargeError for profile pictures
+  const express = require('express');
+  app.use(express.json({ limit: '10mb' }));
+  app.use(express.urlencoded({ limit: '10mb', extended: true }));
+
   // Global prefix — all routes will be /api/v1/...
   app.setGlobalPrefix('api/v1');
 

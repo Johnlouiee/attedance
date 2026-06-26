@@ -3,12 +3,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User, UserRole, UserStatus } from '../auth/entities/user.entity';
+import { Course } from '../courses/entities/course.entity';
 
 @Injectable()
 export class AdminService {
   constructor(
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    @InjectRepository(Course)
+    private readonly courseRepo: Repository<Course>,
   ) {}
 
   // ─── GET STATS ──────────────────────────────────────────────
@@ -24,7 +27,7 @@ export class AdminService {
     const users = await this.userRepo.find({
       select: {
         id: true, firstName: true, lastName: true, email: true,
-        role: true, status: true, studentId: true, profilePhoto: true, createdAt: true,
+        role: true, status: true, studentId: true, contactNumber: true, isEmailVerified: true, profilePhoto: true, createdAt: true,
       },
       order: { createdAt: 'DESC' },
     });
@@ -36,7 +39,7 @@ export class AdminService {
       where: { role: UserRole.STUDENT },
       select: {
         id: true, firstName: true, lastName: true, email: true,
-        studentId: true, role: true, status: true, profilePhoto: true, createdAt: true,
+        studentId: true, role: true, status: true, contactNumber: true, isEmailVerified: true, profilePhoto: true, createdAt: true,
       },
       order: { createdAt: 'DESC' },
     });
@@ -47,7 +50,7 @@ export class AdminService {
       where: { role: UserRole.TEACHER },
       select: {
         id: true, firstName: true, lastName: true, email: true,
-        role: true, status: true, profilePhoto: true, createdAt: true,
+        studentId: true, role: true, status: true, contactNumber: true, isEmailVerified: true, profilePhoto: true, createdAt: true,
       },
       order: { createdAt: 'DESC' },
     });
@@ -57,25 +60,39 @@ export class AdminService {
   async createTeacher(dto: {
     firstName: string;
     lastName: string;
-    email: string;
+    teacherId?: string;
     password: string;
-    studentId?: string;
   }) {
-    const existing = await this.userRepo.findOne({ where: { email: dto.email } });
-    if (existing) throw new ConflictException('An account with this email already exists.');
+    const teacherId = dto.teacherId?.trim() || await this.generateTeacherId();
+
+    const existing = await this.userRepo.findOne({ where: { studentId: teacherId } });
+    if (existing) throw new ConflictException('An account with this Teacher ID already exists.');
 
     const passwordHash = await bcrypt.hash(dto.password, 12);
     const teacher = this.userRepo.create({
       firstName: dto.firstName,
       lastName: dto.lastName,
-      email: dto.email,
-      studentId: dto.studentId || undefined,
+      studentId: teacherId,
+      email: null,
       passwordHash,
       role: UserRole.TEACHER,
-      status: UserStatus.ACTIVE,
+      status: UserStatus.INACTIVE,
+      isEmailVerified: false,
     });
     await this.userRepo.save(teacher);
-    return { message: 'Teacher account created successfully.', userId: teacher.id };
+    return { message: 'Teacher account created successfully.', userId: teacher.id, teacherId };
+  }
+
+  private async generateTeacherId(): Promise<string> {
+    const year = new Date().getFullYear();
+    const prefix = `T-${year}`;
+    for (let seq = 1; seq <= 9999; seq++) {
+      const candidate = `${prefix}${String(seq).padStart(3, '0')}`;
+      const exists = await this.userRepo.findOne({ where: { studentId: candidate } });
+      if (!exists) return candidate;
+    }
+    // Fallback with random suffix
+    return `${prefix}${Math.floor(Math.random() * 9000) + 1000}`;
   }
 
   // ─── TOGGLE USER STATUS ──────────────────────────────────────
@@ -92,6 +109,14 @@ export class AdminService {
     if (userId === requesterId) throw new ForbiddenException('You cannot delete your own account.');
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found.');
+
+    if (user.role === UserRole.TEACHER) {
+      await this.courseRepo.update(
+        { teacherId: userId },
+        { teacherId: null, teacherAssignmentStatus: null }
+      );
+    }
+
     await this.userRepo.remove(user);
     return { message: 'User deleted successfully.' };
   }

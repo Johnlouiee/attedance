@@ -109,7 +109,7 @@ export class EnrollmentsService {
     }
     const match = trimmed.match(/\/join\/([a-f0-9]+)/i);
     if (match) return match[1];
-    if (/^[a-f0-9]{32}$/i.test(trimmed)) return trimmed.toLowerCase();
+    if (/^[a-f0-9]{32,64}$/i.test(trimmed)) return trimmed.toLowerCase();
     throw new BadRequestException('Invalid invite link. Paste the full link from your teacher.');
   }
 }

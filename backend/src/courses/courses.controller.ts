@@ -76,4 +76,34 @@ export class CoursesController {
   remove(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
     return this.service.remove(id, req.user);
   }
+
+  @Get(':id/roster')
+  getRoster(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+    return this.service.getRoster(id, req.user);
+  }
+
+  @Post(':id/regenerate-invite')
+  @HttpCode(HttpStatus.OK)
+  regenerateInvite(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+    return this.service.regenerateInviteToken(id, req.user);
+  }
+
+  @Post(':id/enroll')
+  @HttpCode(HttpStatus.OK)
+  enrollStudent(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('studentIdOrEmail') studentIdOrEmail: string,
+    @Request() req: any
+  ) {
+    return this.service.enrollStudent(id, studentIdOrEmail, req.user);
+  }
+
+  @Delete(':id/unenroll/:enrollmentId')
+  unenrollStudent(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('enrollmentId', ParseIntPipe) enrollmentId: number,
+    @Request() req: any
+  ) {
+    return this.service.unenrollStudent(id, enrollmentId, req.user);
+  }
 }

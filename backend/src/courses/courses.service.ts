@@ -4,7 +4,8 @@ import type { Repository } from 'typeorm';
 import { In } from 'typeorm';
 import { randomBytes } from 'crypto';
 import { Course } from './entities/course.entity';
-import { User } from '../auth/entities/user.entity';
+import { User, UserRole } from '../auth/entities/user.entity';
+import { Enrollment } from '../enrollments/entities/enrollment.entity';
 
 export class CreateCourseDto {
   code: string;
@@ -16,6 +17,7 @@ export class CreateCourseDto {
   classEndTime?: string;
   classDays?: string;
   autoStartOffsetMinutes?: number;
+  enableAutoStart?: boolean;
 }
 
 export class CreateTeacherCourseDto {
@@ -33,6 +35,8 @@ export class CoursesService {
     private readonly courseRepo: Repository<Course>,
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    @InjectRepository(Enrollment)
+    private readonly enrollRepo: Repository<Enrollment>,
   ) {}
 
   async findAll() {
@@ -62,8 +66,9 @@ export class CoursesService {
       order: { code: 'ASC' },
     });
     for (const course of courses) {
-      if (!course.inviteToken) {
-        course.inviteToken = this.generateInviteToken();
+      if (!course.inviteToken || !course.inviteTokenExpiresAt) {
+        course.inviteToken = course.inviteToken || this.generateInviteToken();
+        course.inviteTokenExpiresAt = new Date(Date.now() + 60 * 60 * 1000);
         await this.courseRepo.save(course);
       }
     }
@@ -71,6 +76,7 @@ export class CoursesService {
   }
 
   private toTeacherCourse(c: Course) {
+    const isExpired = c.inviteTokenExpiresAt ? (new Date() > new Date(c.inviteTokenExpiresAt)) : false;
     return {
       id: c.id,
       code: c.code,
@@ -82,9 +88,35 @@ export class CoursesService {
       classEndTime: c.classEndTime,
       classDays: c.classDays,
       autoStartOffsetMinutes: c.autoStartOffsetMinutes,
+      enableAutoStart: c.enableAutoStart,
       scheduleLabel: this.formatScheduleLabel(c),
       inviteToken: c.inviteToken,
+      inviteTokenExpiresAt: c.inviteTokenExpiresAt,
+      inviteLink: this.getInviteLink(c.inviteToken),
+      isInviteExpired: isExpired,
     };
+  }
+
+  private getLocalIp(): string {
+    const interfaces = require('os').networkInterfaces();
+    for (const name of Object.keys(interfaces)) {
+      for (const net of interfaces[name]) {
+        if (net.family === 'IPv4' && !net.internal) {
+          return net.address;
+        }
+      }
+    }
+    return 'localhost';
+  }
+
+  getInviteLink(token: string | null): string {
+    if (!token) return '';
+    let frontendUrl = process.env.FRONTEND_URL || 'http://localhost:4200';
+    if (frontendUrl.includes('localhost') || frontendUrl.includes('127.0.0.1')) {
+      const localIp = this.getLocalIp();
+      frontendUrl = frontendUrl.replace('localhost', localIp).replace('127.0.0.1', localIp);
+    }
+    return `${frontendUrl}/student/join/${token}`;
   }
 
   generateInviteToken() {
@@ -98,6 +130,9 @@ export class CoursesService {
     if (!course) throw new NotFoundException('Invalid or expired invite link.');
     if (!course.teacherId || course.teacherAssignmentStatus !== 'accepted') {
       throw new BadRequestException('This class is not open for enrollment.');
+    }
+    if (course.inviteTokenExpiresAt && new Date() > new Date(course.inviteTokenExpiresAt)) {
+      throw new BadRequestException('This invitation link has expired. Please request a new link from your teacher.');
     }
     return course;
   }
@@ -115,6 +150,7 @@ export class CoursesService {
       assignedTeacher: teacher ? `${teacher.firstName} ${teacher.lastName}` : 'Unassigned',
       ...this.scheduleFields(course),
       inviteToken: course.inviteToken,
+      isInviteExpired: course.inviteTokenExpiresAt ? (new Date() > new Date(course.inviteTokenExpiresAt)) : false,
     };
   }
 
@@ -211,6 +247,7 @@ export class CoursesService {
     course.teacherAssignmentStatus = 'accepted';
     if (!course.inviteToken) {
       course.inviteToken = this.generateInviteToken();
+      course.inviteTokenExpiresAt = new Date(Date.now() + 60 * 60 * 1000);
     }
     await this.courseRepo.save(course);
     return { message: 'Course assignment accepted.', course };
@@ -239,6 +276,20 @@ export class CoursesService {
     });
   }
 
+  async regenerateInviteToken(courseId: number, userPayload: { sub: number; role: string }) {
+    const course = await this.courseRepo.findOne({ where: { id: courseId } });
+    if (!course) {
+      throw new NotFoundException('Course not found.');
+    }
+    if (userPayload.role === 'TEACHER' && course.teacherId !== Number(userPayload.sub)) {
+      throw new ForbiddenException('You can only regenerate invite links for your own courses.');
+    }
+    course.inviteToken = this.generateInviteToken();
+    course.inviteTokenExpiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    await this.courseRepo.save(course);
+    return this.toTeacherCourse(course);
+  }
+
   async create(dto: CreateCourseDto) {
     const codeUpper = dto.code.toUpperCase().trim();
     if (!dto.name?.trim()) {
@@ -265,6 +316,8 @@ export class CoursesService {
         ? dto.teacherAssignmentStatus
         : (dto.teacherId ? 'accepted' : null),
       inviteToken: this.generateInviteToken(),
+      inviteTokenExpiresAt: new Date(Date.now() + 60 * 60 * 1000),
+      enableAutoStart: dto.enableAutoStart !== undefined ? dto.enableAutoStart : true,
       ...schedule,
     });
 
@@ -326,6 +379,10 @@ export class CoursesService {
       course.autoStartOffsetMinutes = dto.autoStartOffsetMinutes;
     }
 
+    if (dto.enableAutoStart !== undefined) {
+      course.enableAutoStart = dto.enableAutoStart;
+    }
+
     if (userPayload.role === 'ADMIN') {
       if (dto.teacherId !== undefined) {
         course.teacherId = dto.teacherId != null ? Number(dto.teacherId) : null as any;
@@ -349,5 +406,112 @@ export class CoursesService {
     }
     await this.courseRepo.remove(course);
     return { message: 'Course deleted.' };
+  }
+
+  async getRoster(courseId: number, userPayload: { sub: number; role: string }) {
+    const course = await this.courseRepo.findOne({ where: { id: courseId } });
+    if (!course) {
+      throw new NotFoundException(`Course not found.`);
+    }
+    if (userPayload.role === 'TEACHER' && course.teacherId !== Number(userPayload.sub)) {
+      throw new ForbiddenException('You can only view rosters for your own courses.');
+    }
+
+    const enrollments = await this.enrollRepo.find({
+      where: { courseId },
+      order: { createdAt: 'DESC' },
+    });
+
+    if (enrollments.length === 0) return [];
+
+    const studentIds = enrollments.map(e => e.studentId);
+    const students = await this.userRepo.find({
+      where: { id: In(studentIds) },
+    });
+
+    return enrollments.map(e => {
+      const student = students.find(s => s.id === e.studentId);
+      return {
+        enrollmentId: e.id,
+        studentId: student ? student.id : e.studentId,
+        firstName: student ? student.firstName : 'Unknown',
+        lastName: student ? student.lastName : 'Student',
+        email: student ? student.email : 'N/A',
+        studentNumber: student ? student.studentId : 'N/A',
+        enrolledAt: e.createdAt,
+      };
+    });
+  }
+
+  async enrollStudent(courseId: number, studentIdOrEmail: string, userPayload: { sub: number; role: string }) {
+    const course = await this.courseRepo.findOne({ where: { id: courseId } });
+    if (!course) {
+      throw new NotFoundException(`Course not found.`);
+    }
+    if (userPayload.role === 'TEACHER' && course.teacherId !== Number(userPayload.sub)) {
+      throw new ForbiddenException('You can only enroll students in your own courses.');
+    }
+
+    const trimmed = studentIdOrEmail.trim();
+    if (!trimmed) {
+      throw new BadRequestException('Student ID or Email is required.');
+    }
+
+    const student = await this.userRepo.findOne({
+      where: [
+        { studentId: trimmed, role: UserRole.STUDENT },
+        { email: trimmed, role: UserRole.STUDENT },
+      ],
+    });
+
+    if (!student) {
+      throw new NotFoundException('No active student account found with this ID or Email.');
+    }
+
+    const existing = await this.enrollRepo.findOne({
+      where: { courseId, studentId: student.id },
+    });
+    if (existing) {
+      throw new ConflictException(`Student ${student.firstName} ${student.lastName} is already enrolled in this course.`);
+    }
+
+    const enrollment = this.enrollRepo.create({
+      courseId,
+      studentId: student.id,
+    });
+    await this.enrollRepo.save(enrollment);
+
+    return {
+      message: `Enrolled ${student.firstName} ${student.lastName} successfully.`,
+      enrollment: {
+        enrollmentId: enrollment.id,
+        studentId: student.id,
+        firstName: student.firstName,
+        lastName: student.lastName,
+        email: student.email,
+        studentNumber: student.studentId,
+        enrolledAt: enrollment.createdAt,
+      },
+    };
+  }
+
+  async unenrollStudent(courseId: number, enrollmentId: number, userPayload: { sub: number; role: string }) {
+    const course = await this.courseRepo.findOne({ where: { id: courseId } });
+    if (!course) {
+      throw new NotFoundException(`Course not found.`);
+    }
+    if (userPayload.role === 'TEACHER' && course.teacherId !== Number(userPayload.sub)) {
+      throw new ForbiddenException('You can only remove students from your own courses.');
+    }
+
+    const enrollment = await this.enrollRepo.findOne({
+      where: { id: enrollmentId, courseId },
+    });
+    if (!enrollment) {
+      throw new NotFoundException('Enrollment not found in this course.');
+    }
+
+    await this.enrollRepo.remove(enrollment);
+    return { message: 'Student removed from course successfully.' };
   }
 }

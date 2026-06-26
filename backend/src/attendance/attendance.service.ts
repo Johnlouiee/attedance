@@ -393,6 +393,86 @@ export class AttendanceService {
     return { byCourse, allStudents };
   }
 
+  async getHistoryByCourse(userId: number, courseId: number, role: string) {
+    const course = await this.courseRepo.findOne({ where: { id: courseId } });
+    if (!course) throw new NotFoundException('Course not found.');
+
+    const sessions = await this.sessionRepo.find({
+      where: { courseId, status: AttendanceSessionStatus.CLOSED },
+      order: { startedAt: 'DESC' },
+    });
+
+    if (role === 'STUDENT') {
+      await this.assertEnrolled(userId, courseId);
+      const sessionIds = sessions.map(s => s.id);
+      const records = sessionIds.length
+        ? await this.recordRepo.find({ where: { sessionId: In(sessionIds), studentId: userId } })
+        : [];
+      const recordMap = new Map(records.map(r => [r.sessionId, r]));
+
+      return {
+        courseId: course.id,
+        courseCode: course.code,
+        courseName: course.name,
+        sessions: sessions.map(s => {
+          const record = recordMap.get(s.id);
+          return {
+            sessionId: s.id,
+            startedAt: s.startedAt,
+            endedAt: s.endsAt,
+            status: record?.status ?? null,
+            scannedAt: record?.scannedAt ?? null,
+          };
+        }),
+      };
+    }
+
+    // TEACHER view
+    if (Number(course.teacherId) !== Number(userId)) {
+      throw new ForbiddenException('You do not own this course.');
+    }
+    const sessionIds = sessions.map(s => s.id);
+    const records = sessionIds.length
+      ? await this.recordRepo.find({ where: { sessionId: In(sessionIds) } })
+      : [];
+    const studentIds = [...new Set(records.map(r => r.studentId))];
+    const students = studentIds.length
+      ? await this.userRepo.find({ where: { id: In(studentIds) } })
+      : [];
+    const studentMap = new Map(students.map(s => [s.id, s]));
+
+    return {
+      courseId: course.id,
+      courseCode: course.code,
+      courseName: course.name,
+      sessions: sessions.map(s => {
+        const sessionRecords = records.filter(r => r.sessionId === s.id);
+        const present = sessionRecords.filter(r => r.status === AttendanceStatus.PRESENT).length;
+        const late = sessionRecords.filter(r => r.status === AttendanceStatus.LATE).length;
+        const absent = sessionRecords.filter(r => r.status === AttendanceStatus.ABSENT).length;
+        return {
+          sessionId: s.id,
+          startedAt: s.startedAt,
+          endedAt: s.endsAt,
+          presentCount: present,
+          lateCount: late,
+          absentCount: absent,
+          totalCount: sessionRecords.length,
+          records: sessionRecords.map(r => ({
+            studentId: r.studentId,
+            studentName: (() => {
+              const st = studentMap.get(r.studentId);
+              return st ? `${st.firstName} ${st.lastName}` : 'Unknown';
+            })(),
+            studentNumber: studentMap.get(r.studentId)?.studentId || '',
+            status: r.status,
+            scannedAt: r.scannedAt,
+          })).sort((a, b) => a.studentName.localeCompare(b.studentName)),
+        };
+      }),
+    };
+  }
+
   async getMyHistory(studentId: number) {
     const records = await this.recordRepo.find({
       where: { studentId },

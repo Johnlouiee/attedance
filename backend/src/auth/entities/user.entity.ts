@@ -22,8 +22,8 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ unique: true })
-  email: string;
+  @Column({ type: 'varchar', unique: true, nullable: true })
+  email: string | null;
 
   @Column()
   passwordHash: string;
@@ -36,6 +36,15 @@ export class User {
 
   @Column({ nullable: true })
   studentId: string;
+
+  @Column({ nullable: true })
+  contactNumber: string;
+
+  @Column({ default: false })
+  isEmailVerified: boolean;
+
+  @Column({ nullable: true })
+  emailVerificationToken: string;
 
   @Column({ nullable: true, type: 'longtext' })
   profilePhoto: string; // stores base64 data URI

@@ -32,7 +32,7 @@ export class AdminController {
 
   @Post('teacher')
   @HttpCode(HttpStatus.CREATED)
-  createTeacher(@Body() dto: { firstName: string; lastName: string; email: string; password: string }) {
+  createTeacher(@Body() dto: { firstName: string; lastName: string; teacherId: string; password: string }) {
     return this.adminService.createTeacher(dto);
   }
 
